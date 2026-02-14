@@ -1,4 +1,4 @@
-# SAE2526_G1_2 :
+# SAE2526_G2_2 :
 FEISTHAUER Simon
 SCHOU Lilian
 TOPAL Fatih
