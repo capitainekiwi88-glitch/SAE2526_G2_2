@@ -1,0 +1,53 @@
+body
+{
+	font-family: "Lucida Grande", Arial;
+}
+
+
+/* ########## MISE EN FORME TABLEAU ########## */
+
+#TAB1 
+{
+	border-spacing: 4px;
+}
+
+.placeHandi
+{
+	background: #2C73C4;
+}
+
+.placeOk
+{
+	background: #BBB;		
+}
+
+.placeInex
+{
+	background: transparent;
+	border: dashed white 2px;
+	width: 21px;
+}
+
+.couloir
+{
+	background: transparent;
+}
+
+td
+{
+	width: 25px;
+	height: 20px;
+	/* background: #BBB; */
+}
+
+/* ####### BUREAU ######## */
+.bureau
+{
+	background: #AAA;
+	width: 100px;
+	height: 30px;
+	line-height: 30px;
+	display: block;	
+	color: white;
+	border-radius: 8px;	
+}

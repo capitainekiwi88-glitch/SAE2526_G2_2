@@ -1,0 +1,250 @@
+/* ##################### Bloc deroulant creation promotion ##################### */
+
+#btncreapromo
+{
+	width: 385px;
+	height: 33px;
+	background: gray;
+	color: white;
+	margin-left:34px;
+	text-align: center;
+	line-height: 33px;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+	border-bottom-left-radius: 6px;
+	border-bottom-right-radius: 6px;
+	text-decoration: none;
+	
+}
+#bloccreapromo{
+		width: 385px;
+		height: 135px;
+		background: #BEBEBE;
+		color: white;
+		margin-bottom: 30px;
+		margin-left: 34px;
+		text-align: center;
+		line-height: 33px;
+		border-bottom-left-radius: 6px;
+		border-bottom-right-radius: 6px;
+	}
+
+	
+#btncreapromo:hover {
+	background: #585858;
+}
+
+/* ##################### Bloc deroulant creation groupe ##################### */
+
+.onglet
+{
+	width: 269px;
+	height: 30px;
+	margin-top: 5px;
+	margin-left: 90px;
+	background: #BEBEBE;
+	float: left;
+	line-height: 30px;
+	text-align: center;
+	color: white;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.onglet2
+{
+	width: 269px;
+	height: 30px;
+	margin-top: 5px;
+	background: #BEBEBE;
+	float: left;
+	line-height: 30px;
+	text-align: center;
+	color: white;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+
+}
+
+#btncreagrp
+{
+
+	width: 385px;
+	height: 33px;
+	background: gray;
+	color: white;
+	margin-left: 429px;
+	margin-right:34px;
+	text-align: center;
+	line-height: 33px;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+	text-decoration: none;
+
+	
+}
+#bloccreagrp{
+
+		width: 385px;
+		height: 135px;
+		background: #BEBEBE;
+		color: white;
+		margin-left: 429px;
+		margin-bottom: 30px;
+		margin-right: 34px;
+		text-align: center;
+		line-height: 33px;
+		border-bottom-left-radius: 6px;
+		border-bottom-right-radius: 6px;
+	}
+
+	
+#btncreagrp:hover {
+	background: #585858;
+}
+/* ################### Bloc saisie de modifications enseignant ################### */
+
+
+.newsaisie
+{
+	width: 219px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+
+.titrecontenupromo
+{
+	height: 50px;
+	width: 860px;
+	background: gray;
+	border-top-right-radius: 6px;
+	border-top-left-radius: 6px;
+	margin-top: 66px;
+	
+	color: white;
+	line-height: 50px;
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+	
+
+	
+}
+
+.intermens
+{
+	width: 860px;
+	background: #e5e5e5;
+	float: right;
+	margin-top: 5px;
+	text-align: center;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.contenupromo
+{
+	width: 860px;
+	background: #e5e5e5;
+  
+	/* margin-top: 5px; */
+	padding-top: 30px;
+	padding-bottom: 30px;
+	border-bottom-right-radius: 6px;
+	border-bottom-left-radius: 6px;
+	margin-bottom: 33px;
+	text-align: center;
+	
+}
+
+.contenuonglet
+{
+	width: 807px;
+	background: #e5e5e5;
+	color: white;
+	margin-left:90px;
+	margin-top:34px;
+	/* margin-top: 5px; */
+	padding-top: 20px;
+	padding-bottom: 10px;
+	border-bottom-right-radius: 6px;
+	border-bottom-left-radius: 6px;
+	margin-bottom: 33px;
+	text-align: center;
+}
+
+.contenutabpromo
+{
+	width: 812px;
+	height: 33px;
+	background: gray;
+	margin: auto;
+	color: white;
+	text-align: center;
+	line-height: 33px;
+	text-decoration: none;
+	margin-top: -2px;
+	margin-left: 90px;
+	padding-left: 1px;
+}
+
+/* Bloc titre */
+#bloctitrepromo
+{
+	width: 664px;
+	height: 33px;
+	background: gray;
+	padding-left: 1px;
+	color: white;
+	line-height: 30px;
+	margin: auto;
+	margin-top: 70px;
+	margin-bottom: 10px;
+	margin-left: 90px;	
+}
+
+/* Bloc nom titre */
+.nomtitrepromo
+{
+	width: 219px;
+	height: 29px;
+	background: #a8a8a8;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 29px;
+	color: white;
+}
+#listeDer
+{
+	width: 232px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+	
+#listeDer2
+{
+	width: 232px;
+	height: 29px;
+	background:#a8a8a8;
+	color: white;
+	font-size: 16px;
+	border: none;
+}

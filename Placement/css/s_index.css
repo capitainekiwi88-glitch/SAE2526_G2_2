@@ -1,0 +1,51 @@
+body
+{
+	display: block;
+	width: 1010px;
+	margin: auto; 
+	margin-top: 33px;
+	margin-bottom: 20px;
+	font-family: "Lucida Grande", Arial;
+}
+
+/* ######################## Elements pages ######################## */
+
+.titrecontenu
+{
+	height: 50px;
+	width: 1010px;
+	background: gray;
+	border-top-right-radius: 6px;
+	border-top-left-radius: 6px;
+	margin-top: 66px;
+	color: white;
+	line-height: 50px;
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.interm
+{
+	width: 1010px;
+	background: #e5e5e5;
+	float: right;
+	margin-top: 5px;
+	text-align: center;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.contenu
+{
+	width: 1010px;
+	background: #e5e5e5;
+	float: right;
+	/* margin-top: 5px; */
+	padding-top: 30px;
+	padding-bottom: 30px;
+	border-bottom-right-radius: 6px;
+	border-bottom-left-radius: 6px;
+	margin-bottom: 33px;
+	text-align: center;
+}

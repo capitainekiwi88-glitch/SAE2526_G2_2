@@ -1,0 +1,102 @@
+.barreOnglet
+{
+	height: 25px;
+	width: 940px;
+	background: transparent;
+	display: block;
+}
+
+.onglet1, .onglet2
+{
+	height: 25px;
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	display: block;
+	text-align: center;
+	color: white;
+	line-height: 25px;
+	background: gray;
+	float: left;
+}
+
+.onglet1
+{
+	width: 940px;
+}
+
+.onglet2
+{
+	width: 470px;
+}
+
+.blocOnglet
+{
+	width: 940px;
+	background: #DDDDDD;
+	display: block;
+	/* border: 1px solid #BEBEBE; */
+}
+
+
+/* ########## MISE EN FORME TABLEAU ########## */
+
+#TAB1 
+{
+	border-spacing: 4px;
+}
+
+.placeHandi
+{
+	background: #2C73C4;
+}
+
+.placeOk
+{
+	background: #BBB;		
+}
+
+.placeSelec
+{
+	background: #777;		
+}
+
+.placeInex
+{
+	background: transparent;
+	border: dashed white 2px;
+	width: 21px;
+}
+
+.couloir
+{
+	background: transparent;
+}
+
+.couloir:hover
+{
+	background: transparent;
+}
+
+td
+{
+	width: 70px;
+	height: 20px;
+	/* background: #BBB; */
+}
+
+td:hover
+{
+	background: gray;
+}
+
+/* ####### BUREAU ######## */
+.bureau
+{
+	background: #AAA;
+	width: 100px;
+	height: 30px;
+	line-height: 30px;
+	display: block;	
+	color: white;
+	border-radius: 8px;	
+}

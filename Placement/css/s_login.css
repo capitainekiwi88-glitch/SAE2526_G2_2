@@ -1,0 +1,64 @@
+	body
+	{ 
+		width:860px;
+		margin:auto;		
+	}
+	
+	#bloc1
+	{
+		width: 478px;
+		height: 250px;
+		background: rgb(227,226,216);
+		position: fixed;
+		top:150px;
+		text-align:center;
+		float: right;
+		border-radius:30px;
+		
+	}
+	
+	#blocinf
+	{
+		width: 100%;
+		height: 145px;
+		background: gray;
+		position: fixed;
+   		top: 196px;
+   		left: 0px;
+	}
+		
+	#champ
+	{
+		width:117px;
+		height:27px;
+		border-radius:4px;
+		border: 1px solid #CCC;
+		opacity: .9;
+	}
+	
+	#bouton
+	{
+		width: 100px;
+		height: 27px;
+		border-radius:4px;
+		border: 1px solid #CCC;
+		background: #DDD url(images/bg-btn.gif);
+	}
+	
+	h1
+	{
+		color: gray;
+		font-family: Arial;
+	}
+	
+	p
+	{
+		font-family:arial;
+   		font-size:30px;
+   		color: white;
+   		text-align:right;
+   		line-height: 210px;
+   		z-index:8;
+   		position:relative;
+   		float:right;
+	}

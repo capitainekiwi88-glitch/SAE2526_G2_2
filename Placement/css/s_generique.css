@@ -1,0 +1,143 @@
+/* ######################## Bouton creation ######################## */
+#btncrea
+{
+	width: 777px;
+	height: 33px;
+	background: gray;
+	color: white;
+	margin: auto;
+	text-align: center;
+	line-height: 33px;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+	text-decoration: none;
+}
+	
+#btncrea:hover {
+	background: #585858;
+}
+
+/* ##################### Element consultation #################### */
+
+/* Bloc titre */
+#bloctitre
+{
+	width: 703px;
+	height: 33px;
+	background: gray;
+	padding-left: 1px;
+	color: white;
+	line-height: 30px;
+	margin-top: 33px;
+	margin-bottom: 10px;
+	margin-left: 116px;	
+}
+
+/* Bloc nom titre */
+.nomtitre
+{
+	width: 349px;
+	height: 29px;
+	background: #a8a8a8;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 29px;
+	color: white;
+}
+
+/* Barre contenant les infos dpt/salle/user */
+.contenutab
+{
+	width: 777px;
+	height: 33px;
+	background: gray;
+	margin: auto;
+	color: white;
+	text-align: center;
+	line-height: 33px;
+	text-decoration: none;
+	margin-top: -2px;
+	padding-left: 1px;
+}
+
+/* Bouton modif / suppr */
+.blocmodif {
+	width: 35px;
+	height: 29px;
+	background: #999999;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+}
+
+.blocmodif:hover {
+	background: #585858;
+}
+
+/* Parametres images */
+.imgmodif {
+	height: 20px;
+	margin-top: 4px;
+}
+
+
+/* ######################## Autres utiles ######################## */
+
+/* Decolore lien <a> */
+#linkdec
+{
+	color: white;
+	text-decoration: none;
+}
+
+/* Bloc opaque pour modif */		
+#fondOpaque
+{	
+	height: 100%;
+	width: 100%;
+	background: gray;
+	position: absolute;
+	z-index: 1;
+   	top: 33;
+	left: 0;
+	opacity: 0.65;
+}
+
+/* ######################## GESTION ######################## */
+
+/* Barre pour valider les modifs */
+#barrevalide
+{
+	width: 155px;
+	height: 40px;
+	background: #BEBEBE;
+	display: block;
+	margin: auto;
+	margin-top: 10px;
+	border-radius: 6px;
+	z-index: 2;
+	position: relative;
+}
+
+/* Bouton pour valider les modifs */
+#bouttonmodif
+{
+	margin-top: 5px;
+	width: 70px;
+	height: 30px;
+	border: 1px solid #CCC;
+	background: #DDD url(../images/bg-btn.gif);
+	border-radius: 6px;
+}
+
+#bouttonmodif:hover
+{
+	background: gray url(../images/bg-btn.gif);
+}
+	

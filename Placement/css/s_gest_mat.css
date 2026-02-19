@@ -1,0 +1,56 @@
+/* ##################### Bloc deroulant creation matiere ##################### */
+
+#bloccreamat {
+	width: 777px;
+	height: 103px; /* Ajuster hauteur selon contenu */
+	background: #BEBEBE;
+	color: white;
+	margin: auto;
+	margin-bottom: 30px;
+	text-align: center;
+	line-height: 33px;
+	border-bottom-left-radius: 6px;
+	border-bottom-right-radius: 6px;
+}
+
+/* ################### Bloc saisie de modifications matiere ################### */
+
+
+.newsaisie
+{
+	width: 349px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+
+/* Bloc modif dpt */
+#listeDer
+{
+	width: 349px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+	
+#listeDer2
+{
+	width: 349px;
+	height: 29px;
+	background: gray;
+	color: white;
+	font-size: 16px;
+	border: none;
+}

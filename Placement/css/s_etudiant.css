@@ -1,0 +1,66 @@
+/* ##################### Element consultation #################### */
+
+/* Bloc titre */
+#bloctitreetud
+{
+	width: 861px;
+	height: 33px;
+	background: gray;
+	padding-left: 1px;
+	color: white;
+	line-height: 30px;
+	margin-top: 33px;
+	margin-bottom: 10px;
+	margin-left: 70px;	
+}
+
+/* Bloc nom titre */
+.nomtitreetud
+{
+	width: 170px;
+	height: 29px;
+	background: #a8a8a8;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 29px;
+	color: white;
+}
+
+/* Barre contenant les infos dpt/salle/user */
+.contenutabetud
+{
+	width: 861px;
+	height: 33px;
+	background: gray;
+	margin: auto;
+	color: white;
+	text-align: center;
+	line-height: 33px;
+	text-decoration: none;
+	margin-top: -2px;
+	padding-left: 1px;
+	margin-left: 70px;
+}
+
+.blocretour {
+	width: 35px;
+	height: 29px;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+}
+
+.blocretour:hover {
+	background: #585858;
+}
+
+.imgretour {
+	height: 30px;
+	margin-top: 4px;
+}

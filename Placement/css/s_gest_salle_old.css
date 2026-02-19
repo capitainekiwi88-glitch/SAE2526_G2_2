@@ -1,0 +1,15 @@
+.btnCreaVisu
+{
+	width: 375px;
+	height: 160px;
+	background: #AAA;
+	float: left;
+	border-radius: 20px;
+	margin-left:85px;
+	line-height: 160px;
+}
+
+.btnCreaVisu:hover
+{
+	background: gray;
+}

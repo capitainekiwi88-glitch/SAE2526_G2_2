@@ -1,0 +1,119 @@
+body
+{
+	font-family: "Lucida Grande", Arial;
+}
+
+.correct
+{
+	border: 1px solid #CCC;
+}
+
+.incorrect
+{
+	border: 1px solid #CCC;
+	border-color: rgba(191, 68, 68, 0.75);
+}
+
+span
+{
+	font-size: 11px;
+	color: gray;
+}
+
+label
+{
+	color: #444;
+	font-size: 15px;
+	font-weight: 550;
+}
+
+.contenutab
+{
+	width: 789px;
+	height: 23px;
+	background: gray;
+	margin: auto;
+	color: white;
+	text-align: center;
+	line-height: 23px;
+	text-decoration: none;
+	margin-top: -2px;
+	padding-left: 1px;
+	font-size: 14px;
+}
+
+.contenutitre
+{
+	width: 761px;
+	height: 23px;
+	background: gray;
+	color: white;
+	text-align: center;
+	line-height: 23px;
+	text-decoration: none;
+	margin-top: -2px;
+	margin-bottom: 10px;
+	margin-left: 72px;
+	padding-left: 1px;
+	font-size: 14px;
+}
+
+.nomtitre
+{
+	width: 349px;
+	height: 19px;
+	background: #a8a8a8;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 19px;
+	color: white;
+}
+
+.supprCombi
+{
+	width: 26px;
+	height: 19px;
+	background: #999999;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 19px;
+	color: white;
+}
+
+.supprCombi:hover
+{
+	background: #585858;
+}
+
+.imgsuppr
+{
+	width: 17px;
+	height: 17px;
+	margin-top: 1px;
+}
+
+#progressBar
+{
+	margin-top: 8px;
+}
+
+.blocBar
+{
+	text-align: center;
+	margin-left: 450px;
+	width: 50px;
+	height: 50px;
+	top: 200px;
+	z-index: 1;
+	position: absolute;
+	border-radius: 10px;
+	background: #DDD;
+}

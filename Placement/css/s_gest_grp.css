@@ -1,0 +1,259 @@
+/* ################### Bloc saisie de modifications enseignant ################### */
+
+.onglet
+{
+	width: 134px;
+	height: 30px;
+	margin-top: 5px;
+	margin-left: 90px;
+	background: #BEBEBE;
+	float: left;
+	line-height: 30px;
+	text-align: center;
+	color: white;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.onglet2
+{
+	width: 135px;
+	height: 30px;
+	margin-top: 5px;
+	background: #BEBEBE;
+	float: left;
+	line-height: 30px;
+	text-align: center;
+	color: white;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.contenuonglet
+{
+	width: 809px;
+	background: #e5e5e5;
+	color: white;
+	margin-left:90px;
+	margin-top:35px;
+	/* margin-top: 5px; */
+	padding-top: 20px;
+	padding-bottom: 10px;
+	border-bottom-right-radius: 6px;
+	border-bottom-left-radius: 6px;
+	margin-bottom: 33px;
+	text-align: center;
+}
+
+
+.newsaisie
+{
+	width: 137px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+
+.newsaisie2
+{
+	width: 346px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+.titrecontenugrp
+{
+	height: 50px;
+	width: 860px;
+	background: gray;
+	border-top-right-radius: 6px;
+	border-top-left-radius: 6px;
+	margin-top: 66px;
+	color: white;
+	line-height: 50px;
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+	
+
+	
+}
+
+.intermens
+{
+	width: 860px;
+	background: #e5e5e5;
+	float: right;
+	margin-top: 5px;
+	text-align: center;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.contenugrp
+{
+	width: 860px;
+	background: #e5e5e5;
+  
+	/* margin-top: 5px; */
+	padding-top: 30px;
+	padding-bottom: 30px;
+	border-bottom-right-radius: 6px;
+	border-bottom-left-radius: 6px;
+	margin-bottom: 33px;
+	text-align: center;
+	
+}
+.contenutabgrp2
+{
+	width: 771px;
+	height: 33px;
+	background: gray;
+	margin: auto;
+	color: white;
+	text-align: center;
+	line-height: 33px;
+	text-decoration: none;
+	margin-top: -2px;
+	margin-left: 20px;
+	padding-left: 1px;
+}
+
+.contenutabgrp
+{
+	width: 770px;
+	height: 33px;
+	background: gray;
+	margin: auto;
+	color: white;
+	text-align: center;
+	line-height: 33px;
+	text-decoration: none;
+	margin-top: -2px;
+	margin-left: 20px;
+	padding-left: 1px;
+}
+
+/* Bloc titre */
+#bloctitregrp
+{
+	width: 696px;
+	height: 33px;
+	background: gray;
+	padding-left: 1px;
+	color: white;
+	line-height: 30px;
+	margin-top: 33px;
+	margin-bottom: 10px;
+	margin-left: 20px;	
+}
+#bloctitregrp2
+{
+	width: 697px;
+	height: 33px;
+	background: gray;
+	padding-left: 1px;
+	color: white;
+	line-height: 30px;
+	margin-top: 33px;
+	margin-bottom: 10px;
+	margin-left: 20px;	
+}
+
+/* Bloc nom titre */
+.nomtitregrp
+{
+	width: 137px;
+	height: 29px;
+	background: #a8a8a8;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 29px;
+	color: white;
+}
+.nomtitregrp2
+{
+	width: 346px;
+	height: 29px;
+	background: #a8a8a8;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+	text-align: center;
+	line-height: 29px;
+	color: white;
+}
+
+#listeDer
+{
+	width: 232px;
+	height: 29px;
+	background: #999999;
+	color: white;
+	font-size: 16px;
+	font-family: 'Lucida Grande';
+	text-align: center;	
+	border: hidden;
+	position: relative;
+	z-index: 2;
+}
+	
+#listeDer2
+{
+	width: 232px;
+	height: 29px;
+	background:#a8a8a8;
+	color: white;
+	font-size: 16px;
+	border: none;
+}
+
+/* Barre pour valider les modifs */
+#barrevalide1, #barrevalide2, #barrevalide3, #barrevalide4, #barrevalide5, #barrevalide6, #barrevalide7, #barrevalide8 , #barrevalide9 , #barrevalide10
+{
+	width: 155px;
+	height: 40px;
+	background: #BEBEBE;
+	display: block;
+	margin: auto;
+	margin-top: 10px;
+	border-radius: 6px;
+	z-index: 2;
+	position: relative;
+}
+.blocretour {
+	width: 35px;
+	height: 29px;
+	float: left;
+	margin-top: 2px;
+	margin-left: 1px;
+	margin-right: 1px;
+	display: block;
+}
+
+.blocretour:hover {
+	background: #585858;
+}
+
+.imgretour {
+	height: 30px;
+	margin-top: 4px;
+}
