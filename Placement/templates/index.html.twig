@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ nom_projet }}</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
+        .success { color: #2ecc71; font-weight: bold; }
+        ul { background: #eee; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Bienvenue sur {{ nom_projet }}</h1>
+    <p class="success">{{ message }}</p>
+
+    <h3>Liste des inscrits :</h3>
+    <ul>
+        {% for etudiant in etudiants %}
+            <li>{{ etudiant }}</li>
+        {% else %}
+            <li>Aucun étudiant trouvé.</li>
+        {% endfor %}
+    </ul>
+
+    <p>Généré le : {{ "now"|date("d/m/Y H:i") }}</p>
+</body>
+</html>
