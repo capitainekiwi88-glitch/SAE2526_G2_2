@@ -4,9 +4,9 @@ require_once("ptrim.php");
 
 try {
     // Connexion à la base de données avec PDO
-    $dsn = 'mysql:host=VOTRE_SERVEUR;dbname=VOTRE_DB;charset=utf8';
-    $username = 'VOTRE USER';
-    $password = 'VOTRE_PASSWORD';
+    $dsn = 'mysql:host=devbdd.iutmetz.univ-lorraine.fr;dbname=e61222u_placement;charset=utf8';
+    $username = 'e61222u_appli';
+    $password = '32401633';
     // Options pour gérer les erreurs et s'assurer de la compatibilité UTF-8
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,  // Pour lever une exception en cas d'erreur
@@ -16,8 +16,8 @@ try {
 
     // Création de la connexion PDO
     $pdo = new PDO($dsn, $username, $password, $options);
-    
- //echo "Connexion réussie !";
+
+    //echo "Connexion réussie !";
 } catch (PDOException $e) {
     // En cas d'erreur, on attrape l'exception et affiche le message d'erreur
     die("Erreur de connexion : " . $e->getMessage());
@@ -25,5 +25,5 @@ try {
 
 
 
-	
+
 
