@@ -1,0 +1,28 @@
+body
+{
+	font-family: "Lucida Grande", Arial;
+}
+
+.correct
+{
+	border: 1px solid #CCC;
+}
+
+.incorrect
+{
+	border: 1px solid #CCC;
+	border-color: rgba(191, 68, 68, 0.75);
+}
+
+span
+{
+	font-size: 11px;
+	color: gray;
+}
+
+label
+{
+	color: #444;
+	font-size: 15px;
+	font-weight: 550;
+}

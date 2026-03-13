@@ -1,0 +1,162 @@
+body
+{
+	font-family: "Lucida Grande", Arial;
+}
+
+/* ########## MISE EN FORME TABLEAU ########## */
+
+#TAB1 
+{
+	border-spacing: 4px;
+}
+
+.placeHandi
+{
+	background: #2C73C4;
+}
+
+.placeOk
+{
+	background: #BBB;		
+}
+
+.placeInex
+{
+	background: transparent;
+	border: dashed white 2px;
+	width: 21px;
+}
+
+.couloir
+{
+	background: transparent;
+}
+
+.couloir:hover
+{
+	background: transparent;
+}
+
+td
+{
+	width: 25px;
+	height: 20px;
+	/* background: #BBB; */
+}
+
+td:hover
+{
+	background: gray;
+}
+
+/* ########## MISE EN FORME TABLEAU BOUTON ########## */
+
+#TAB2 
+{
+	border-spacing: 4px;
+}
+
+.td2
+{
+	width: 25px;
+	height: 20px;
+	background: transparent;
+	text-align: center;
+}
+
+.td2:hover
+{
+	background: transparent;
+}
+
+/* ########## MISE EN FORME TABLEAU BOUTON ########## */
+
+#TAB3 
+{
+	border-spacing: 4px;
+}
+
+.td3
+{
+	width: 25px;
+	height: 20px;
+	background: transparent;
+	text-align: center;
+}
+
+.td3:hover
+{
+	background: transparent;
+}
+
+/* ########## BLOC BOUTON COULOIR ########## */
+
+button
+{
+	width: 5px;
+	height: 5px;
+}
+
+.btnVertical
+{
+	margin-left: 30px;
+}
+
+.btnHorizontal
+{
+	margin-bottom: 10px;
+}
+
+
+/* ####### BLOC TEST ###### */
+#BLOCTEST
+{
+	margin: auto;
+	width: 700px;
+	/* border: 1px solid; */
+	text-align: center;
+}
+
+#blocTabStruct
+{
+	/* border: 1px solid; */
+}
+
+#blocBtnAddVertical
+{
+	/* border: 1px solid; */
+}
+
+#blocBtnAddHorizontal
+{
+	width: 20px;
+	/* border: 1px solid; */
+	float: left;
+	margin-top: 41px;
+}
+
+/* ####### BUREAU ######## */
+.bureau
+{
+	background: #AAA;
+	width: 100px;
+	height: 30px;
+	line-height: 30px;
+	display: block;	
+	color: white;
+	border-radius: 8px;	
+}
+
+
+/* LIENS + */
+
+#link
+{
+	text-decoration: none;
+	color: gray;
+}
+
+#link:hover
+{
+	color: red;
+}

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<title>Cr&eacute;ation salle</title>
+	<link rel="stylesheet" type="text/css" href="css/s_stage1.css">
+	<link rel="stylesheet" type="text/css" href="css/s_stage3.css">
+	<style>
+		.salle-wrapper { display: block; width: 1010px; margin: auto; margin-top: 33px; font-family: "Lucida Grande", Arial; }
+		.titrecontenu { height: 50px; width: 1010px; background: gray; border-top-right-radius: 6px; border-top-left-radius: 6px; color: white; line-height: 50px; font-size: 24px; font-weight: bold; text-align: center; }
+		.contenu { width: 1010px; background: #e5e5e5; padding-top: 30px; padding-bottom: 30px; border-bottom-right-radius: 6px; border-bottom-left-radius: 6px; margin-bottom: 33px; text-align: center; }
+		.bureau { background: #AAA; width: 100px; height: 30px; line-height: 30px; display: block; color: white; border-radius: 8px; margin: auto; }
+		.tooltip { font-size: 11px; color: gray; display: none; }
+		#TAB1 { border-spacing: 4px; margin: auto; }
+		#TAB1 td { width: 25px; height: 20px; cursor: pointer; }
+		#TAB1 td:hover { background: gray; }
+		.placeOk { background: #BBB; }
+		.placeHandi { background: #2C73C4; }
+		.couloir { background: transparent; }
+		.couloir:hover { background: transparent !important; }
+		.placeInex { background: transparent; border: dashed white 2px; }
+		#btnbef, #btnnext, #btnsave { width: auto; height: auto; }
+	</style>
+</head>
+<body>
+
+{% include 'navbar.html.twig' %}
+
+<div class="salle-wrapper">
+<!-- #################### TITRE PRINCIPAL ################### -->
+<div class="titrecontenu">Cr&eacute;ation salle</div>
+
+<!-- ##################### CONTENU PAGE ##################### -->
+<div class="contenu">
+
+	<!-- ======================== ETAPE 1 ======================== -->
+	<div id="stage1">
+		<center><h1>&Eacute;tape 1 : Informations salle</h1></center>
+
+		<label for="nomSalle">Nom </label><input id="nomSalle" class="correct" type="text" value="">
+		<span class="tooltip"> Un nom ne peut pas faire moins de 2 caract&egrave;res.</span><br>
+
+		<label for="batSalle">B&acirc;timent</label>
+		<input id="batSalle" class="correct" type="text" value="">
+		<span class="tooltip"> Aucun b&acirc;timent n'est renseign&eacute;.</span>
+
+		<label for="dptSalle">D&eacute;partement</label>
+		<input id="dptSalle" class="correct" type="text" value="">
+		<span class="tooltip"> Aucun d&eacute;partement n'est renseign&eacute;.</span><br>
+
+		<label for="etageSalle">&Eacute;tage</label>
+		<select id="etageSalle" class="correct">
+			<option value="A">&Eacute;tage</option>
+			<option value="0">RDC</option>
+			<option value="1">1er</option>
+			<option value="2">2&egrave;me</option>
+			<option value="3">3&egrave;me</option>
+			<option value="4">4&egrave;me</option>
+		</select>
+		<span class="tooltip"> Aucun &eacute;tage n'est s&eacute;lectionn&eacute;.</span><br>
+
+		<label for="nbRang">Nombre de rangs </label><input id="nbRang" class="correct" type="text" value="">
+		<span class="tooltip"> Le nombre de rang doit &ecirc;tre compris entre 2 et 29.</span><br>
+
+		<label for="nbCol">Nombre de colonnes </label><input id="nbCol" class="correct" type="text" value="">
+		<span class="tooltip"> Le nombre de colonne doit &ecirc;tre compris entre 2 et 29.</span>
+	</div>
+
+	<!-- ======================== ETAPE 2 ======================== -->
+	<div id="stage2" style="display:none">
+		<center><h1>&Eacute;tape 2 : Structure</h1></center>
+		<center><h3 id="titreStage2"></h3></center>
+
+		<!-- Boutons + pour couloirs verticaux -->
+		<center>
+			<table id="TAB2"><tr id="btnVertRow"></tr></table>
+		</center>
+
+		<!-- Grille + boutons horizontaux -->
+		<center>
+			<table id="TAB1"></table>
+		</center>
+
+		<br><center><div class="bureau">BUREAU</div></center>
+	</div>
+
+	<!-- ======================== ETAPE 3 ======================== -->
+	<div id="stage3" style="display:none">
+		<center><h1>&Eacute;tape 3 : Mod&eacute;lisation places</h1></center>
+
+		<center>
+			<form>
+				<input type="radio" name="choixEtat" id="delPlace" checked="true">Supprimer place
+				<input type="radio" name="choixEtat" id="addPlace">Ajouter place
+				<input type="radio" name="choixEtat" id="handiPlace">Place handicap&eacute;
+			</form>
+
+			<table id="TAB1_S3"></table>
+		</center>
+
+		<br><center><div class="bureau">BUREAU</div></center>
+	</div>
+
+	<!-- ======================== ETAPE 4 ======================== -->
+	<div id="stage4" style="display:none">
+		<center><h1>&Eacute;tape 4 : R&eacute;capitulatif</h1></center>
+
+		<center>
+			<h3 id="recap_nom"></h3>
+			<p id="recap_places"></p>
+			<table id="TAB1_S4"></table>
+		</center>
+
+		<br><center><div class="bureau">BUREAU</div></center>
+	</div>
+
+	<!-- ################ Boutons navigation ################ -->
+	<br>
+	<button type="button" id="btnbef" style="display:none; float:left; margin-left:20px;">Pr&eacute;c&eacute;dent</button>
+	<button type="button" id="btnnext" style="float:right; margin-right:20px;">Suivant</button>
+	<button type="button" id="btnsave" style="display:none; float:right; margin-right:20px;">Enregistrer</button>
+
+</div>
+</div>
+
+<!-- ################## JAVASCRIPT ################### -->
+<script>
+// ##################### Conversion string <-> tableau #####################
+function arrayToDonnee(tab)
+{
+	var text = '';
+	for(var i = 0; i < tab.length; i++)
+	{
+		for(var j = 0; j < tab[i].length; j++)
+		{
+			text += tab[i][j];
+		}
+		text += '-';
+	}
+	return text;
+}
+
+function donneeToArray(donnee)
+{
+	var tab = [];
+	var rows = donnee.split('-');
+	for(var i = 0; i < rows.length; i++)
+	{
+		if(rows[i] == '') continue;
+		tab[i] = [];
+		for(var j = 0; j < rows[i].length; j++)
+		{
+			tab[i][j] = parseInt(rows[i][j]);
+		}
+	}
+	return tab;
+}
+
+// ##################### Variables globales #####################
+var nomSalle = '';
+var batSalle = '';
+var dptSalle = '';
+var etageSalle = '';
+var structSalle = [];
+var rangSalle = 0;
+var colSalle = 0;
+var currentStage = 'stage1';
+
+// ##################### References boutons #####################
+var btnbef = document.getElementById('btnbef');
+var btnnext = document.getElementById('btnnext');
+var btnsave = document.getElementById('btnsave');
+
+// ##################### Navigation #####################
+function affBtn()
+{
+	if(currentStage == 'stage1')
+	{
+		btnbef.style.display = 'none';
+		btnnext.style.display = '';
+		btnsave.style.display = 'none';
+	}
+	else if(currentStage == 'stage4')
+	{
+		btnbef.style.display = '';
+		btnnext.style.display = 'none';
+		btnsave.style.display = '';
+	}
+	else
+	{
+		btnbef.style.display = '';
+		btnnext.style.display = '';
+		btnsave.style.display = 'none';
+	}
+}
+
+function afficherStage(stage)
+{
+	document.getElementById('stage1').style.display = 'none';
+	document.getElementById('stage2').style.display = 'none';
+	document.getElementById('stage3').style.display = 'none';
+	document.getElementById('stage4').style.display = 'none';
+	document.getElementById(stage).style.display = '';
+	currentStage = stage;
+	affBtn();
+}
+
+// ##################### Validation etape 1 #####################
+function getTooltip(element)
+{
+	while(element = element.nextSibling)
+	{
+		if(element.className === 'tooltip')
+		{
+			return element;
+		}
+	}
+	return false;
+}
+
+function checkChamp()
+{
+	var nomEl = document.getElementById('nomSalle');
+	var batEl = document.getElementById('batSalle');
+	var dptEl = document.getElementById('dptSalle');
+	var etageEl = document.getElementById('etageSalle');
+	var rangEl = document.getElementById('nbRang');
+	var colEl = document.getElementById('nbCol');
+	var ok = 0;
+
+	// ################ Test nom ################
+	var tooltip = getTooltip(nomEl);
+	if(nomEl.value.length < 2)
+	{
+		nomEl.className = 'incorrect';
+		tooltip.style.display = 'inline-block';
+	}
+	else
+	{
+		nomEl.className = 'correct';
+		tooltip.style.display = 'none';
+		ok++;
+	}
+
+	// ################ Test batiment ################
+	tooltip = getTooltip(batEl);
+	if(batEl.value.length < 1)
+	{
+		batEl.className = 'incorrect';
+		tooltip.style.display = 'inline-block';
+	}
+	else
+	{
+		batEl.className = 'correct';
+		tooltip.style.display = 'none';
+		ok++;
+	}
+
+	// ################ Test departement ################
+	tooltip = getTooltip(dptEl);
+	if(dptEl.value.length < 1)
+	{
+		dptEl.className = 'incorrect';
+		tooltip.style.display = 'inline-block';
+	}
+	else
+	{
+		dptEl.className = 'correct';
+		tooltip.style.display = 'none';
+		ok++;
+	}
+
+	// ################ Test etage ################
+	tooltip = getTooltip(etageEl);
+	if(etageEl.value == 'A')
+	{
+		etageEl.className = 'incorrect';
+		tooltip.style.display = 'inline-block';
+	}
+	else
+	{
+		etageEl.className = 'correct';
+		tooltip.style.display = 'none';
+		ok++;
+	}
+
+	// ################ Test nbRang ################
+	tooltip = getTooltip(rangEl);
+	if(parseInt(rangEl.value) > 1 && parseInt(rangEl.value) < 30)
+	{
+		rangEl.className = 'correct';
+		tooltip.style.display = 'none';
+		ok++;
+	}
+	else
+	{
+		rangEl.className = 'incorrect';
+		tooltip.style.display = 'inline-block';
+	}
+
+	// ################ Test nbCol ################
+	tooltip = getTooltip(colEl);
+	if(parseInt(colEl.value) > 1 && parseInt(colEl.value) < 30)
+	{
+		colEl.className = 'correct';
+		tooltip.style.display = 'none';
+		ok++;
+	}
+	else
+	{
+		colEl.className = 'incorrect';
+		tooltip.style.display = 'inline-block';
+	}
+
+	return ok;
+}
+
+// ##################### Etape 2 : Structure couloirs #####################
+function initStructSalle()
+{
+	nomSalle = document.getElementById('nomSalle').value;
+	batSalle = document.getElementById('batSalle').value;
+	dptSalle = document.getElementById('dptSalle').value;
+	etageSalle = document.getElementById('etageSalle').value;
+	rangSalle = parseInt(document.getElementById('nbRang').value);
+	colSalle = parseInt(document.getElementById('nbCol').value);
+
+	structSalle = [];
+	for(var i = 0; i < rangSalle; i++)
+	{
+		structSalle[i] = [];
+		for(var j = 0; j < colSalle; j++)
+		{
+			structSalle[i][j] = 1;
+		}
+	}
+}
+
+function addCouloirVertical(idCouloir)
+{
+	idCouloir += 1;
+	colSalle += 1;
+
+	for(var i = 0; i < rangSalle; i++)
+	{
+		for(var j = colSalle - 1; j > idCouloir; j--)
+		{
+			structSalle[i][j] = structSalle[i][j - 1];
+		}
+		structSalle[i][idCouloir] = 0;
+	}
+	afficherStage2();
+}
+
+function addCouloirHorizontal(idCouloir)
+{
+	idCouloir += 1;
+	rangSalle += 1;
+
+	for(var i = 0; i < colSalle; i++)
+	{
+		for(var j = rangSalle - 1; j > idCouloir; j--)
+		{
+			if(!structSalle[j]) structSalle[j] = [];
+			if(!structSalle[j - 1]) structSalle[j - 1] = [];
+			structSalle[j][i] = structSalle[j - 1][i];
+		}
+		if(!structSalle[idCouloir]) structSalle[idCouloir] = [];
+		structSalle[idCouloir][i] = 0;
+	}
+	afficherStage2();
+}
+
+function delCouloirVertical(idCouloir)
+{
+	for(var i = 0; i < rangSalle; i++)
+	{
+		for(var j = idCouloir; j < colSalle - 1; j++)
+		{
+			structSalle[i][j] = structSalle[i][j + 1];
+		}
+		structSalle[i].splice(colSalle - 1, 1);
+	}
+	colSalle -= 1;
+	afficherStage2();
+}
+
+function delCouloirHorizontal(idCouloir)
+{
+	for(var i = 0; i < colSalle; i++)
+	{
+		for(var j = idCouloir; j < rangSalle - 1; j++)
+		{
+			structSalle[j][i] = structSalle[j + 1][i];
+		}
+	}
+	structSalle.splice(rangSalle - 1, 1);
+	rangSalle -= 1;
+	afficherStage2();
+}
+
+function afficherStage2()
+{
+	document.getElementById('titreStage2').textContent = 'Nom salle : ' + nomSalle;
+
+	// Boutons verticaux (au dessus de la grille)
+	var btnRow = '';
+	for(var i = 0; i < colSalle + 1; i++)
+	{
+		if(i == 0 || i == colSalle)
+		{
+			btnRow += '<td class="td2"></td>';
+		}
+		else
+		{
+			if(structSalle[0][i - 1] == 0)
+			{
+				btnRow += '<td class="td2"><a href="#" onclick="delCouloirVertical(' + (i - 1) + '); return false;" id="link">-</a></td>';
+			}
+			else
+			{
+				btnRow += '<td class="td2"><a href="#" onclick="addCouloirVertical(' + (i - 1) + '); return false;" id="link">+</a></td>';
+			}
+		}
+	}
+	document.getElementById('btnVertRow').innerHTML = btnRow;
+
+	// Grille avec boutons horizontaux
+	var html = '';
+	for(var i = 0; i < rangSalle; i++)
+	{
+		html += '<tr id="' + i + '">';
+		for(var j = 0; j < colSalle; j++)
+		{
+			html += '<td class="' + modifClasse(structSalle[i][j]) + '" id="' + i + '-' + j + '"></td>';
+		}
+
+		// Bouton horizontal a droite
+		if(i < rangSalle - 1)
+		{
+			if(structSalle[i][0] == 0)
+			{
+				html += '<td class="td2"><a href="#" onclick="delCouloirHorizontal(' + i + '); return false;" id="link">-</a></td>';
+			}
+			else
+			{
+				html += '<td class="td2"><a href="#" onclick="addCouloirHorizontal(' + i + '); return false;" id="link">+</a></td>';
+			}
+		}
+
+		html += '</tr>';
+	}
+	document.getElementById('TAB1').innerHTML = html;
+}
+
+// ##################### Etape 3 : Modelisation places #####################
+function afficherStage3()
+{
+	var html = '';
+	for(var i = 0; i < rangSalle; i++)
+	{
+		html += '<tr id="' + i + '">';
+		for(var j = 0; j < colSalle; j++)
+		{
+			html += '<td class="' + modifClasse(structSalle[i][j]) + '" id="s3-' + i + '-' + j + '" onclick="modifEtat(this.id, this.className)"></td>';
+		}
+		html += '</tr>';
+	}
+	document.getElementById('TAB1_S3').innerHTML = html;
+}
+
+function modifClasse(val)
+{
+	switch(val)
+	{
+		case 0: return 'couloir';
+		case 1: return 'placeOk';
+		case 2: return 'placeHandi';
+		case 3: return 'placeInex';
+		default: return '';
+	}
+}
+
+function modifEtat(id, classe)
+{
+	if(classe == 'couloir') return;
+
+	var parts = id.replace('s3-', '').split('-');
+	var x = parseInt(parts[0]);
+	var y = parseInt(parts[1]);
+
+	structSalle[x][y] = recupChoix();
+
+	var caseTab = document.getElementById(id);
+	caseTab.className = modifClasse(structSalle[x][y]);
+}
+
+function recupChoix()
+{
+	var delPlace = document.getElementById('delPlace');
+	var addPlace = document.getElementById('addPlace');
+	var handiPlace = document.getElementById('handiPlace');
+
+	if(delPlace.checked) return 3;
+	else if(addPlace.checked) return 1;
+	else if(handiPlace.checked) return 2;
+}
+
+// ##################### Etape 4 : Recapitulatif #####################
+function comptePlace()
+{
+	var placeOk = 0;
+	var placeHandi = 0;
+
+	for(var i = 0; i < rangSalle; i++)
+	{
+		for(var j = 0; j < colSalle; j++)
+		{
+			if(structSalle[i][j] == 1) placeOk++;
+			else if(structSalle[i][j] == 2) placeHandi++;
+		}
+	}
+	return [placeOk, placeHandi];
+}
+
+function afficherStage4()
+{
+	var places = comptePlace();
+	document.getElementById('recap_nom').textContent = nomSalle;
+
+	var txt = places[0] + ' places';
+	if(places[1] > 0)
+	{
+		txt += ' (+ ' + places[1] + ' place(s) "handicape")';
+	}
+	document.getElementById('recap_places').innerHTML = '<b>' + txt + '</b>';
+
+	var html = '';
+	for(var i = 0; i < rangSalle; i++)
+	{
+		html += '<tr id="' + i + '">';
+		for(var j = 0; j < colSalle; j++)
+		{
+			html += '<td class="' + modifClasse(structSalle[i][j]) + '"></td>';
+		}
+		html += '</tr>';
+	}
+	document.getElementById('TAB1_S4').innerHTML = html;
+}
+
+// ##################### Bouton Suivant #####################
+btnnext.addEventListener('click', function(e)
+{
+	switch(currentStage)
+	{
+		case 'stage1':
+			if(parseInt(checkChamp()) == 6)
+			{
+				initStructSalle();
+				afficherStage2();
+				afficherStage('stage2');
+			}
+			break;
+
+		case 'stage2':
+			afficherStage3();
+			afficherStage('stage3');
+			break;
+
+		case 'stage3':
+			afficherStage4();
+			afficherStage('stage4');
+			break;
+
+		default: break;
+	}
+}, false);
+
+// ##################### Bouton Precedent #####################
+btnbef.addEventListener('click', function(e)
+{
+	switch(currentStage)
+	{
+		case 'stage2':
+			afficherStage('stage1');
+			break;
+
+		case 'stage3':
+			afficherStage2();
+			afficherStage('stage2');
+			break;
+
+		case 'stage4':
+			afficherStage3();
+			afficherStage('stage3');
+			break;
+
+		default: break;
+	}
+}, false);
+
+// ##################### Bouton Enregistrer #####################
+btnsave.addEventListener('click', function(e)
+{
+	var donnee = arrayToDonnee(structSalle);
+	var places = comptePlace();
+
+	alert('Salle "' + nomSalle + '" enregistree !\n\nDonnee (format BDD) :\n' + donnee + '\n\nPlaces : ' + places[0] + ' normales, ' + places[1] + ' handicap');
+	console.log('--- SALLE ENREGISTREE ---');
+	console.log('Nom :', nomSalle);
+	console.log('Batiment :', batSalle);
+	console.log('Departement :', dptSalle);
+	console.log('Etage :', etageSalle);
+	console.log('Donnee (format BDD) :', donnee);
+	console.log('structSalle (tableau) :', structSalle);
+	console.log('Places normales :', places[0], '| Handicap :', places[1]);
+}, false);
+</script>
+</body>
+</html>
