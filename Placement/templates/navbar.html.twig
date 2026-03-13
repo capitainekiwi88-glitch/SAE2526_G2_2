@@ -1,0 +1,47 @@
+{# Template: barre de navigation moderne (copie pour Twig) #}
+<nav class="app-navbar">
+  <style>
+    .app-navbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#ffffff;border-bottom:1px solid #e6e6e6;box-shadow:0 1px 3px rgba(0,0,0,0.04);font-family:Arial,Helvetica,sans-serif}
+    .app-navbar .nav-left{display:flex;align-items:center;gap:10px}
+    .app-navbar .nav-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:transparent;border:1px solid transparent;color:#333;text-decoration:none;font-weight:600;transition:all .18s ease}
+    .app-navbar .nav-btn:hover{background:#f5f5f7;transform:translateY(-1px);border-color:#e0e0e0}
+    .app-navbar .home-btn img{height:28px}
+    .app-navbar .dropdown{position:relative}
+    .app-navbar .dropdown-content{position:absolute;left:0;top:calc(100% + 8px);background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:6px 0;box-shadow:0 6px 18px rgba(20,20,20,0.06);display:none;min-width:150px;z-index:40}
+    .app-navbar .dropdown-content a{display:block;padding:8px 14px;color:#333;text-decoration:none;font-weight:500}
+    .app-navbar .dropdown-content a:hover{background:#f5f5f7}
+    .app-navbar .dropdown:hover .dropdown-content{display:block}
+    .app-navbar .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+    .app-navbar .btn-logout{background:#fff;border:1px solid #d9d9d9;color:#c0392b;padding:8px 14px;border-radius:8px}
+    .app-navbar .btn-logout:hover{background:#c0392b;color:#fff;border-color:#c0392b}
+    .app-navbar .username{font-size:12px;color:#666}
+    @media(max-width:720px){.app-navbar{padding:8px}.app-navbar .nav-left{gap:6px}.app-navbar .nav-btn{padding:6px 10px}}
+  </style>
+
+  <div class="nav-left">
+    <a href="index.php?p=home" class="nav-btn home-btn" title="Accueil">
+      <img src="../public/images/home.png" alt="Accueil">
+    </a>
+
+    <div class="dropdown">
+      <a class="nav-btn" href="#">Gestion</a>
+      <div class="dropdown-content">
+        <a href="index.php?p=gest_mat">Matière</a>
+        <a href="index.php?p=gest_ens">Enseignant</a>
+        <a href="index.php?p=gest_ensmat">Enseignement</a>
+        <a href="index.php?p=gest_salle">Salle</a>
+        <a href="index.php?p=gest_dpt">Département</a>
+        <a href="index.php?p=gest_bat">Bâtiment</a>
+        <a href="index.php?p=gest_promo">Promotion</a>
+      </div>
+    </div>
+
+    <a href="index.php?p=util_placement" class="nav-btn">Placement</a>
+  </div>
+
+  <div class="nav-right">
+    <a href="deconnexion.php" class="nav-btn btn-logout">Déconnexion</a>
+    <div class="username">{{ username_test|default('Utilisateur Test') }}</div>
+  </div>
+
+</nav>

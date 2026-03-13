@@ -3,3 +3,4 @@ composer.phar
 composer-setup.php
 Placement_old/connexion.php
 Placement/src/Modele/DAO/Connexion.php
+**/.DS_Store
