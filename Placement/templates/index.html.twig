@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <title>{{ nom_projet }}</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #333; background: #f4f7f2; }
+        .layout-page { margin-top: 12px; padding: 0 16px; }
         .success { color: #2ecc71; font-weight: bold; }
         ul { background: #eee; padding: 20px; border-radius: 8px; }
     </style>
 </head>
 <body>
-    {% include 'navbar.html.twig' %}
-    <h1>Bienvenue sur {{ nom_projet }}</h1>
-    <p class="success">{{ message }}</p>
+    <div class="layout-page">
+        {% include 'navbar.html.twig' %}
+        <h1>Bienvenue sur {{ nom_projet }}</h1>
+        <p class="success">{{ message }}</p>
 
     <h3>Liste des inscrits :</h3>
     <ul>
@@ -24,5 +26,6 @@
     </ul>
 
     <p>Généré le : {{ "now"|date("d/m/Y H:i") }}</p>
+    </div>
 </body>
 </html>

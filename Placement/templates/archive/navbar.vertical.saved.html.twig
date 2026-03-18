@@ -1,0 +1,51 @@
+{# Barre de navigation verticale au cas où on voudrait la réutiliser #}
+<nav class="app-sidebar" aria-label="Navigation principale">
+  <style>
+    .app-sidebar { position: fixed; top: 12px; left: 12px; width: 80px; height: calc(100vh - 24px); background:#f2f2f2; border:1px solid #ccc; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.1); overflow:hidden; transition: width .25s cubic-bezier(.25,.8,.25,1), background .2s ease; display:flex; flex-direction:column; align-items:center; }
+    .app-sidebar:hover { width: 230px; background:#ededed; }
+    .app-sidebar .title { display:none; }
+    .app-sidebar .nav-items { width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; padding:10px 0; transition: padding .2s ease; }
+    .app-sidebar .nav-item { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:8px 0; border-radius:10px; text-decoration:none; color:#333; font-weight:600; transition: background .2s, justify-content .2s, padding .2s; }
+    .app-sidebar .nav-item:hover { background:#fff; }
+    .app-sidebar .nav-item img { width: 46px; height: 46px; object-fit: contain; }
+    .app-sidebar:hover .nav-items { align-items:flex-start; padding:10px 8px; }
+    .app-sidebar:hover .nav-item { justify-content:flex-start; padding-left:10px; }
+    .app-sidebar .nav-label { font-size: 15px; font-weight: 600; opacity:0; white-space:nowrap; width:0; overflow:hidden; margin-left:0; transition: opacity .2s ease, width .2s ease, margin-left .2s ease; }
+    .app-sidebar:hover .nav-label { opacity:1; width:auto; margin-left:6px; }
+    .app-sidebar:hover .nav-item { justify-content:flex-start; padding-left:12px; }
+    .app-sidebar:hover .nav-items { align-items:flex-start; padding-left:8px; }
+    .app-sidebar .footer { margin-top:auto; width:100%; padding:10px 0 12px; border-top:1px solid #ddd; display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .app-sidebar .username { font-size:12px; color:#333; opacity:0; transition:opacity .2s ease; }
+    .app-sidebar:hover .username { opacity:1; }
+    .app-sidebar .logout { width:100%; display:flex; align-items:center; justify-content:flex-start; text-decoration:none; color:#333; font-size:14px; background:transparent; border:none; padding:8px 16px 8px 12px; border-radius:10px; transition: background .2s ease, padding .2s ease; overflow:hidden; margin-left: 8px; }
+    .app-sidebar:hover .logout { background:#f0f0f0; padding:8px 12px; margin-left: 0; }
+    .app-sidebar .logout-icon { width: 34px; height: 34px; object-fit: contain; margin-right: 8px; }
+    .app-sidebar .logout-label { font-size: 15px; font-weight: 600; opacity:0; white-space:nowrap; margin-left:0; transition: opacity .2s ease, margin-left .2s ease; }
+    .app-sidebar:hover .logout-label { opacity:1; margin-left:8px; }
+    .app-sidebar:hover .username { opacity:1; }
+    .app-sidebar:hover ~ .layout-page { margin-left: 244px; }
+    .layout-page { margin-left: 94px; margin-top: 18px; padding: 12px; transition: margin-left .25s ease; }
+    .app-sidebar:hover ~ .layout-page { margin-left: 244px; }
+    @media (max-width: 900px) { .app-sidebar { left: 8px; top: 8px; } .layout-page { margin-left: 94px; } }
+    .layout-page { margin-left: 94px; margin-top: 18px; padding: 12px; transition: margin-left .25s ease; }
+    .app-sidebar:hover ~ .layout-page { margin-left: 244px; }
+    @media (max-width: 900px) { .app-sidebar { left: 8px; top: 8px; } .layout-page { margin-left: 94px; } }
+  </style>
+
+  <div class="nav-items">
+    <a class="nav-item" href="index.php?p=home"><img src="../public/images/home.png" alt="Accueil"><span class="nav-label">Accueil</span></a>
+    <a class="nav-item" href="index.php?p=gest_mat"><img src="../public/images/matiere.png" alt="Matière"><span class="nav-label">Matière</span></a>
+    <a class="nav-item" href="index.php?p=gest_ens"><img src="../public/images/enseignant.png" alt="Enseignant"><span class="nav-label">Enseignant</span></a>
+    <a class="nav-item" href="index.php?p=gest_ensmat"><img src="../public/images/enseignement.png" alt="Enseignement"><span class="nav-label">Enseignement</span></a>
+    <a class="nav-item" href="index.php?p=gest_salle"><img src="../public/images/salle.png" alt="Salle"><span class="nav-label">Salle</span></a>
+    <a class="nav-item" href="index.php?p=gest_dpt"><img src="../public/images/departement.png" alt="Département"><span class="nav-label">Département</span></a>
+    <a class="nav-item" href="index.php?p=gest_bat"><img src="../public/images/batiment.png" alt="Bâtiment"><span class="nav-label">Bâtiment</span></a>
+    <a class="nav-item" href="index.php?p=gest_promo"><img src="../public/images/promotion.png" alt="Promotion"><span class="nav-label">Promotion</span></a>
+    <a class="nav-item" href="index.php?p=util_placement"><img src="../public/images/placement.png" alt="Placement"><span class="nav-label">Placement</span></a>
+  </div>
+
+  <div class="footer">
+    <a class="logout" href="deconnexion.php"><img class="logout-icon" src="../public/images/deconnexion.png" alt="Déconnexion"><span class="logout-label">Déconnexion</span></a>
+    <div class="username">{{ username_test|default('Utilisateur : Test') }}</div>
+  </div>
+</nav>
