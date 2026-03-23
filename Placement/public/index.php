@@ -60,6 +60,12 @@ function placementDefaultState(): array
             'duration_hour' => '02',
             'duration_minute' => '00',
         ],
+        'form' => [
+            'promo_id' => '',
+            'group_id' => '0',
+            'matiere_id' => '',
+            'salle_id' => '',
+        ],
         'combinations' => [],
         'placements' => [
             'rooms' => [],
@@ -212,6 +218,12 @@ switch ($page) {
                 'duration_hour' => $_POST['duration_hour'] ?? '02',
                 'duration_minute' => $_POST['duration_minute'] ?? '00',
             ];
+            $state['form'] = [
+                'promo_id' => (string) ($_POST['promo_id'] ?? ''),
+                'group_id' => (string) ($_POST['group_id'] ?? '0'),
+                'matiere_id' => (string) ($_POST['matiere_id'] ?? ''),
+                'salle_id' => (string) ($_POST['salle_id'] ?? ''),
+            ];
             $state['date_error'] = '';
             $action = $_POST['action'] ?? '';
 
@@ -220,10 +232,10 @@ switch ($page) {
             }
 
             if ($action === 'add_combination' && $state['date_error'] === '') {
-                $promoId = (int) ($_POST['promo_id'] ?? 0);
-                $groupId = (int) ($_POST['group_id'] ?? 0);
-                $matiereId = (int) ($_POST['matiere_id'] ?? 0);
-                $salleId = (int) ($_POST['salle_id'] ?? 0);
+                $promoId = (int) ($state['form']['promo_id'] !== '' ? $state['form']['promo_id'] : 0);
+                $groupId = (int) ($state['form']['group_id'] !== '' ? $state['form']['group_id'] : 0);
+                $matiereId = (int) ($state['form']['matiere_id'] !== '' ? $state['form']['matiere_id'] : 0);
+                $salleId = (int) ($state['form']['salle_id'] !== '' ? $state['form']['salle_id'] : 0);
 
                 $promo = placementFindById($data['promotions'], $promoId);
                 $matiere = placementFindById($data['matieres'], $matiereId);
@@ -273,6 +285,7 @@ switch ($page) {
             'current_stage' => $state['current_stage'],
             'warnings' => [],
             'exam' => $state['exam'],
+            'form' => $state['form'],
             'date_error' => $state['date_error'],
             'today_iso' => date('Y-m-d'),
             'promotions' => $data['promotions'],

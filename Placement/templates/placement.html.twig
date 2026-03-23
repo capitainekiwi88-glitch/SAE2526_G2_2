@@ -54,6 +54,7 @@
         .section-head p { margin: 6px 0 0; color: var(--muted); line-height: 1.5; }
         .form-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px 18px; align-items: end; }
         .field { display: grid; gap: 8px; }
+        .field.is-hidden { display: none; }
         .field label { font-size: .88rem; font-weight: 700; color: var(--text); }
         .field input, .field select { width: 100%; min-width: 0; min-height: 44px; border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: var(--surface-soft); color: var(--text); font: inherit; }
         .field-error { font-size: .82rem; color: #dc2626; font-weight: 600; }
@@ -86,6 +87,11 @@
         .btn.secondary { background: #eff5fb; color: var(--text); border-color: #d2dfec; }
         .btn.secondary:hover { background: #e6eef7; }
         .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+        .btn:disabled,
+        .btn[disabled] { background: #dbe4ee !important; color: #7b8ca1 !important; border-color: #cbd5e1 !important; cursor: not-allowed; box-shadow: none; opacity: 1; }
+        .btn.primary:disabled:hover,
+        .btn.secondary:disabled:hover,
+        .btn.ghost:disabled:hover { background: #dbe4ee !important; }
         .btn.warn { background: #fff4e5; color: var(--danger); border-color: #f4d2b3; }
         .btn.small { min-height: 38px; padding: 0 12px; border-radius: 12px; font-size: .88rem; }
         .btn.compact { min-height: 38px; padding: 0 14px; border-radius: 12px; font-size: .88rem; }
@@ -228,39 +234,42 @@
                             <div class="field field-promo">
                                 <label for="promo_id">Promotion</label>
                                 <select id="promo_id" name="promo_id">
+                                    <option value="" {{ form.promo_id == '' ? 'selected' }}>--</option>
                                     {% for promo in promotions %}
-                                        <option value="{{ promo.id }}">{{ promo.label }}</option>
+                                        <option value="{{ promo.id }}" {{ form.promo_id == (promo.id ~ '') ? 'selected' }}>{{ promo.label }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="field field-group">
+                            <div class="field field-group is-hidden" id="field-group">
                                 <label for="group_id">Groupe</label>
                                 <select id="group_id" name="group_id">
-                                    <option value="0">Toute la promotion</option>
+                                    <option value="0" {{ form.group_id == '0' ? 'selected' }}>--</option>
                                     {% for groupe in groupes %}
-                                        <option value="{{ groupe.id }}" data-promo="{{ groupe.promo_id }}">{{ groupe.label }}</option>
+                                        <option value="{{ groupe.id }}" data-promo="{{ groupe.promo_id }}" {{ form.group_id == (groupe.id ~ '') ? 'selected' }}>{{ groupe.label }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="field field-matiere">
+                            <div class="field field-matiere is-hidden" id="field-matiere">
                                 <label for="matiere_id">Matière</label>
                                 <select id="matiere_id" name="matiere_id">
+                                    <option value="" {{ form.matiere_id == '' ? 'selected' }}>--</option>
                                     {% for matiere in matieres %}
-                                        <option value="{{ matiere.id }}" data-promo="{{ matiere.promo_id }}">{{ matiere.nom }} · {{ matiere.promo_label }}</option>
+                                        <option value="{{ matiere.id }}" data-promo="{{ matiere.promo_id }}" {{ form.matiere_id == (matiere.id ~ '') ? 'selected' }}>{{ matiere.nom }} · {{ matiere.promo_label }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="field field-salle">
+                            <div class="field field-salle is-hidden" id="field-salle">
                                 <label for="salle_id">Salle</label>
                                 <select id="salle_id" name="salle_id">
+                                    <option value="" {{ form.salle_id == '' ? 'selected' }}>--</option>
                                     {% for salle in salles %}
-                                        <option value="{{ salle.id }}">{{ salle.nom }} · {{ salle.batiment }} · {{ salle.capacite }} places</option>
+                                        <option value="{{ salle.id }}" {{ form.salle_id == (salle.id ~ '') ? 'selected' }}>{{ salle.nom }} · {{ salle.batiment }} · {{ salle.capacite }} places</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="field field-actions">
                                 <div class="toolbar" style="margin-top:0;">
-                                    <button class="btn primary" type="submit" name="action" value="add_combination">+ Ajouter</button>
+                                    <button class="btn primary" id="add-combination-btn" type="submit" name="action" value="add_combination" disabled>+ Ajouter</button>
                                 </div>
                             </div>
                         </div>
@@ -455,6 +464,11 @@
             const promoSelect = document.getElementById('promo_id');
             const groupSelect = document.getElementById('group_id');
             const matiereSelect = document.getElementById('matiere_id');
+            const salleSelect = document.getElementById('salle_id');
+            const fieldGroup = document.getElementById('field-group');
+            const fieldMatiere = document.getElementById('field-matiere');
+            const fieldSalle = document.getElementById('field-salle');
+            const addCombinationButton = document.getElementById('add-combination-btn');
 
             function filterSelect(select, promoId, keepAllOption) {
                 if (!select) return;
@@ -472,24 +486,67 @@
                 });
 
                 const selected = select.options[select.selectedIndex];
-                if (!selected || (selected.hidden && !keepAllOption)) {
-                    select.value = firstVisibleValue || '';
-                }
                 if (!selected || selected.hidden) {
-                    select.value = firstVisibleValue || '0';
+                    select.value = keepAllOption ? '0' : '';
                 }
             }
 
-            function syncPlacementFilters() {
+            function updateAddButtonState() {
+                if (!addCombinationButton) return;
+
+                const canAdd = !!promoSelect
+                    && promoSelect.value !== ''
+                    && !!matiereSelect
+                    && matiereSelect.value !== ''
+                    && !!salleSelect
+                    && salleSelect.value !== '';
+
+                addCombinationButton.disabled = !canAdd;
+            }
+
+            function syncPlacementFilters(resetDependentFields = false) {
                 if (!promoSelect) return;
                 const promoId = promoSelect.value;
+                const showDependentFields = promoId !== '';
+
+                if (fieldGroup) fieldGroup.classList.toggle('is-hidden', !showDependentFields);
+                if (fieldMatiere) fieldMatiere.classList.toggle('is-hidden', !showDependentFields);
+                if (fieldSalle) fieldSalle.classList.toggle('is-hidden', !showDependentFields);
+
+                if (!showDependentFields) {
+                    if (groupSelect) groupSelect.value = '0';
+                    if (matiereSelect) matiereSelect.value = '';
+                    if (salleSelect) salleSelect.value = '';
+                    updateAddButtonState();
+                    return;
+                }
+
                 filterSelect(groupSelect, promoId, true);
                 filterSelect(matiereSelect, promoId, false);
+                if (resetDependentFields) {
+                    if (groupSelect) groupSelect.value = '0';
+                    if (matiereSelect) matiereSelect.value = '';
+                    if (salleSelect) salleSelect.value = '';
+                }
+
+                updateAddButtonState();
             }
 
             if (promoSelect) {
-                promoSelect.addEventListener('change', syncPlacementFilters);
-                syncPlacementFilters();
+                promoSelect.addEventListener('change', () => syncPlacementFilters(true));
+                syncPlacementFilters(false);
+            }
+
+            if (groupSelect) {
+                groupSelect.addEventListener('change', updateAddButtonState);
+            }
+
+            if (matiereSelect) {
+                matiereSelect.addEventListener('change', updateAddButtonState);
+            }
+
+            if (salleSelect) {
+                salleSelect.addEventListener('change', updateAddButtonState);
             }
 
             const tabs = Array.from(document.querySelectorAll('[data-room-tab]'));
