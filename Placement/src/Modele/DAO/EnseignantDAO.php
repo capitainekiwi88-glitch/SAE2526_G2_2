@@ -1,7 +1,92 @@
-<?php 
+<?php
 namespace App\Modele\DAO;
-use PDO;
-use App\Modele\Entity\Enseignant;
-// CORRECTION NECESSAIRE SUR BDD AVANT DE CREER CAR CHANGEMENT POSSIBLE ...
 
-?>
+use App\Modele\Entity\Enseignant;
+use PDO;
+
+class EnseignantDAO {
+    private PDO $_db;
+
+    public function __construct() {
+        $this->_db = Connexion::getInstance();
+    }
+
+    public function getById(int $id): ?Enseignant {
+        $stmt = $this->_db->prepare("SELECT * FROM enseignant WHERE id_ens = :id");
+        $stmt->execute([':id' => $id]);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$data) return null;
+
+        return new Enseignant(
+            $data['id_ens'],
+            $data['nom_ens'],
+            $data['prenom_ens'],
+            $data['sexe'],
+            $data['login'],
+            $data['admin']
+        );
+    }
+
+    public function findAll(): array {
+        $list = [];
+        $res = $this->_db->query("SELECT * FROM enseignant ORDER BY nom_ens");
+
+        while ($data = $res->fetch(PDO::FETCH_ASSOC)) {
+            $list[] = new Enseignant(
+                $data['id_ens'],
+                $data['nom_ens'],
+                $data['prenom_ens'],
+                $data['sexe'],
+                $data['login'],
+                $data['admin']
+            );
+        }
+        return $list;
+    }
+
+    public function insert(Enseignant $e, string $password): bool {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $this->_db->prepare("INSERT INTO enseignant (nom_ens, prenom_ens, sexe, login, admin, pass) VALUES (:nom, :prenom, :sexe, :login, :admin, :password)");
+        $res = $stmt->execute([
+            ':nom' => $e->getNom(),
+            ':prenom' => $e->getPrenom(),
+            ':sexe' => $e->getSexe(),
+            ':login' => $e->getLogin(),
+            ':admin' => $e->getAdmin(),
+            ':password' => $hash
+        ]);
+
+        if ($res) {
+            $e->setIdEnseignant((int)$this->_db->lastInsertId());
+        }
+        return $res;
+    }
+    public function findByLogin(string $login): ?array {
+        $stmt = $this->_db->prepare("SELECT * FROM enseignant WHERE login = :login");
+        $stmt->execute([':login' => $login]);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data ?: null;
+    }
+
+
+
+    public function delete(Enseignant $d): bool {
+        $stmt = $this->_db->prepare("DELETE FROM enseignant WHERE id_ens = :id");
+        return $stmt->execute([':id' => $d->getIdEnseignant()]);
+    }
+
+    public function update(Enseignant $d): bool {
+        $stmt = $this->_db->prepare("UPDATE enseignant SET nom_ens = :nom, prenom_ens = :prenom, sexe = :sexe, login = :login, admin = :admin WHERE id_ens = :id");
+        return $stmt->execute([
+            ':nom' => $d->getNom(),
+            ':prenom' => $d->getPrenom(),
+            ':sexe' => $d->getSexe(),
+            ':login' => $d->getLogin(),
+            ':admin' => $d->getAdmin(),
+            ':id'  => $d->getIdEnseignant()
+        ]);
+    }
+
+}

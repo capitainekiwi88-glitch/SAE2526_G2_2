@@ -51,4 +51,18 @@ class BatimentDAO {
         }
         return $res;
     }
+
+    public function delete(Batiment $b): bool {
+        $stmt = $this->_db->prepare("DELETE FROM batiment WHERE id_bat = :id");
+        return $stmt->execute([':id' => $b->getIdBatiment()]);
+    }
+
+    public function update(Batiment $b): bool {
+        $stmt = $this->_db->prepare("UPDATE batiment SET nom_bat = :nom, ad_bat = :ad WHERE id_bat = :id");
+        return $stmt->execute([
+            ':nom' => $b->getNom(),
+            ':ad'  => $b->getAdresse(),
+            ':id'  => $b->getIdBatiment()
+        ]);
+    }
 }

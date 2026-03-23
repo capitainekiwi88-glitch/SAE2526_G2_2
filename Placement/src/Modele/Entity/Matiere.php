@@ -3,10 +3,11 @@ namespace App\Modele\Entity;
 class Matiere{
     private int $_idMatiere;
     private string $_nomMatiere;
-
-    public function __construct(int $idMatiere, string $nomMatiere){
+    private int $_idPromo;
+    public function __construct(int $idMatiere, string $nomMatiere, int $idPromo){
         $this->setIdMatiere($idMatiere);
         $this->setNomMatiere($nomMatiere);
+        $this->setIdPromo($idPromo);
     }
 
     public function getIdMatiere(): int{
@@ -23,9 +24,14 @@ class Matiere{
     public function setNomMatiere(string $val){
         $this->_nomMatiere = $val;
     }
-
+    public function getIdPromo(): int{
+        return $this->_idPromo;
+    }
+    public function setIdPromo(int $val){
+        $this->_idPromo = $val;
+    }
     public function __toString(){
-        return $this->getNomMatiere();
+        return $this->getNomMatiere() + " (Promo " + $this->getIdPromo() + ")";
     }
     public function equals(Matiere $autre){
         return $this->getIdMatiere() == $autre->getIdMatiere();
