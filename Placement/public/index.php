@@ -28,20 +28,22 @@ function placementBaseData(): array
 
         ],
         'matieres' => [
-            ['id' => 1, 'promo_id' => 1, 'nom' => 'Développement Web', 'promo_label' => 'INFO BUT1'],
-            ['id' => 2, 'promo_id' => 1, 'nom' => 'Mathématiques Discrètes', 'promo_label' => 'INFO BUT1'],
-            ['id' => 3, 'promo_id' => 1, 'nom' => 'Mathématiques Fondamentales', 'promo_label' => 'INFO BUT1'],
+            ['id' => 1, 'promo_id' => 1, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT1'],
+            ['id' => 2, 'promo_id' => 1, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT1'],
+            ['id' => 3, 'promo_id' => 1, 'nom' => 'Math', 'promo_label' => 'INFO BUT1'],
 
-            ['id' => 4, 'promo_id' => 2, 'nom' => 'Développement Efficace', 'promo_label' => 'INFO BUT2'],
-            ['id' => 5, 'promo_id' => 2, 'nom' => 'Développement Web', 'promo_label' => 'INFO BUT2'],
-            ['id' => 6, 'promo_id' => 2, 'nom' => 'SQL et base de données', 'promo_label' => 'INFO BUT2'],
+            ['id' => 4, 'promo_id' => 2, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT2'],
+            ['id' => 5, 'promo_id' => 2, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT2'],
+            ['id' => 6, 'promo_id' => 2, 'nom' => 'Math', 'promo_label' => 'INFO BUT2'],
 
-            ['id' => 7, 'promo_id' => 4, 'nom' => 'Développement Efficace', 'promo_label' => 'INFO BUT2 Passerelle'],
-            ['id' => 8, 'promo_id' => 4, 'nom' => 'Développement Web', 'promo_label' => 'INFO BUT2 Passerelle'],
-            ['id' => 9, 'promo_id' => 4, 'nom' => 'SQL et base de données', 'promo_label' => 'INFO BUT2 Passerelle'],
+            ['id' => 7, 'promo_id' => 4, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT2 Passerelle'],
+            ['id' => 8, 'promo_id' => 4, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT2 Passerelle'],
+            ['id' => 9, 'promo_id' => 4, 'nom' => 'Math', 'promo_label' => 'INFO BUT2 Passerelle'],
 
-            ['id' => 10, 'promo_id' => 3, 'nom' => 'Architecture logicielle', 'promo_label' => 'INFO BUT3'],
-            ['id' => 11, 'promo_id' => 3, 'nom' => 'Qualité de développement', 'promo_label' => 'INFO BUT3'],
+            ['id' => 10, 'promo_id' => 3, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT3'],
+            ['id' => 11, 'promo_id' => 3, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT3'],
+            ['id' => 12, 'promo_id' => 3, 'nom' => 'Math', 'promo_label' => 'INFO BUT3'],
+
 
         ],
         'salles' => [
@@ -346,11 +348,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
         ];
 
         $students = placementStudentsForSelection((int) $combination['promo_id'], (int) $combination['group_id']);
-        foreach ($students as $index => &$student) {
-            $student['seed'] = crc32($roomId . '|' . $combination['id'] . '|' . $index);
-        }
-        unset($student);
-        usort($students, static fn(array $a, array $b): int => $a['seed'] <=> $b['seed']);
+        shuffle($students);
 
         $seatKeys = array_keys($rooms[$roomId]['assignments']);
         usort($seatKeys, static function (string $a, string $b): int {
@@ -401,11 +399,11 @@ function placementSwapSeats(array &$state, int $roomId, string $seatA, string $s
         return [
             'ok' => true,
             'seatA' => [
-                'name' => $studentB['display_name'] ?? 'Libre',
+                'name' => $studentB['display_name'] ?? '',
                 'empty' => $studentB === null,
             ],
             'seatB' => [
-                'name' => $studentA['display_name'] ?? 'Libre',
+                'name' => $studentA['display_name'] ?? '',
                 'empty' => $studentA === null,
             ],
         ];
@@ -499,6 +497,11 @@ switch ($page) {
             }
 
             if ($action === 'generate_placements' && $state['date_error'] === '' && !empty($state['combinations'])) {
+                $state['placements'] = placementBuildPlacements($state['combinations'], $data['salles']);
+                $state['current_stage'] = 2;
+            }
+
+            if ($action === 'reroll_placements' && !empty($state['combinations'])) {
                 $state['placements'] = placementBuildPlacements($state['combinations'], $data['salles']);
                 $state['current_stage'] = 2;
             }
