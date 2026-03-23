@@ -289,6 +289,8 @@
                                         <th>Promotion</th>
                                         <th>Groupe</th>
                                         <th>Matière</th>
+                                        <th>Étudiants</th>
+                                        <th>Places libres</th>
                                         <th>Salle</th>
                                         <th></th>
                                     </tr>
@@ -299,6 +301,8 @@
                                             <td><span class="badge primary">{{ combination.promo_label }}</span></td>
                                             <td><span class="badge neutral">{{ combination.group_label }}</span></td>
                                             <td>{{ combination.matiere_label }}</td>
+                                            <td>{{ combination.student_count }}</td>
+                                            <td>{{ combination.free_seats }} / {{ combination.total_seats }}</td>
                                             <td><span class="badge success">{{ combination.salle_label }}</span></td>
                                             <td style="text-align:right;">
                                                 <form method="post">

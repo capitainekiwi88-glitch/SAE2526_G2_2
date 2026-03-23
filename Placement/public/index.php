@@ -3,33 +3,58 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 session_start();
 
+// Valeurs fictives pour tester l'affichage du placement, à remplacer par des données réelles provenant de la base de données via les DAO
 function placementBaseData(): array
 {
     return [
         'promotions' => [
-            ['id' => 1, 'label' => 'BUT1 INFO'],
-            ['id' => 2, 'label' => 'BUT2 INFO'],
-            ['id' => 3, 'label' => 'BUT3 INFO'],
+            ['id' => 1, 'label' => 'INFO BUT1'],
+            ['id' => 2, 'label' => 'INFO BUT2'],
+            ['id' => 3, 'label' => 'INFO BUT2 Passerelle'],
+            ['id' => 4, 'label' => 'INFO BUT3'],
         ],
         'groupes' => [
-            ['id' => 1, 'promo_id' => 1, 'label' => 'Groupe A'],
-            ['id' => 2, 'promo_id' => 1, 'label' => 'Groupe B'],
-            ['id' => 3, 'promo_id' => 2, 'label' => 'Groupe A'],
-            ['id' => 4, 'promo_id' => 3, 'label' => 'Groupe A'],
+            ['id' => 1, 'promo_id' => 1, 'label' => 'Groupe 1'],
+            ['id' => 2, 'promo_id' => 1, 'label' => 'Groupe 2'],
+            ['id' => 3, 'promo_id' => 1, 'label' => 'Groupe 3'],
+            ['id' => 4, 'promo_id' => 1, 'label' => 'Groupe 4'],
+            ['id' => 5, 'promo_id' => 2, 'label' => 'Groupe 1'],
+            ['id' => 6, 'promo_id' => 2, 'label' => 'Groupe 2'],
+            ['id' => 7, 'promo_id' => 2, 'label' => 'Groupe 3'],
+            ['id' => 8, 'promo_id' => 3, 'label' => 'Groupe 4'],
+            ['id' => 9, 'promo_id' => 4, 'label' => 'Groupe 1'],
+            ['id' => 10, 'promo_id' => 4, 'label' => 'Groupe 2'],
+            ['id' => 11, 'promo_id' => 4, 'label' => 'Groupe 3'],
+
         ],
         'matieres' => [
-            ['id' => 1, 'promo_id' => 1, 'nom' => 'Développement Web', 'promo_label' => 'BUT1 INFO'],
-            ['id' => 2, 'promo_id' => 1, 'nom' => 'Mathématiques', 'promo_label' => 'BUT1 INFO'],
-            ['id' => 3, 'promo_id' => 2, 'nom' => 'Base de données', 'promo_label' => 'BUT2 INFO'],
-            ['id' => 4, 'promo_id' => 3, 'nom' => 'Architecture logicielle', 'promo_label' => 'BUT3 INFO'],
+            ['id' => 1, 'promo_id' => 1, 'nom' => 'Développement Web', 'promo_label' => 'INFO BUT1'],
+            ['id' => 2, 'promo_id' => 1, 'nom' => 'Mathématiques Discrètes', 'promo_label' => 'INFO BUT1'],
+            ['id' => 3, 'promo_id' => 1, 'nom' => 'Mathématiques Fondamentales', 'promo_label' => 'INFO BUT1'],
+
+            ['id' => 4, 'promo_id' => 2, 'nom' => 'Développement Efficace', 'promo_label' => 'INFO BUT2'],
+            ['id' => 5, 'promo_id' => 2, 'nom' => 'Développement Web', 'promo_label' => 'INFO BUT2'],
+            ['id' => 6, 'promo_id' => 2, 'nom' => 'SQL et base de données', 'promo_label' => 'INFO BUT2'],
+
+            ['id' => 7, 'promo_id' => 4, 'nom' => 'Développement Efficace', 'promo_label' => 'INFO BUT2 Passerelle'],
+            ['id' => 8, 'promo_id' => 4, 'nom' => 'Développement Web', 'promo_label' => 'INFO BUT2 Passerelle'],
+            ['id' => 9, 'promo_id' => 4, 'nom' => 'SQL et base de données', 'promo_label' => 'INFO BUT2 Passerelle'],
+
+            ['id' => 10, 'promo_id' => 3, 'nom' => 'Architecture logicielle', 'promo_label' => 'INFO BUT3'],
+            ['id' => 11, 'promo_id' => 3, 'nom' => 'Qualité de développement', 'promo_label' => 'INFO BUT3'],
+
         ],
         'salles' => [
-            ['id' => 1, 'nom' => 'A101', 'batiment' => 'IUT', 'capacite' => 16],
-            ['id' => 2, 'nom' => 'B204', 'batiment' => 'IUT', 'capacite' => 12],
+            ['id' => 1, 'nom' => 'Amphi A', 'batiment' => 'IUT', 'capacite' => 150],
+            ['id' => 2, 'nom' => 'Amphi B', 'batiment' => 'IUT', 'capacite' => 150],
+            ['id' => 3, 'nom' => 'B09', 'batiment' => 'IUT', 'capacite' => 69],
+            ['id' => 4, 'nom' => 'E23', 'batiment' => 'IUT', 'capacite' => 74],
+            
         ],
     ];
 }
 
+// au cas ou, pourrait etre supprimée bientot
 function placementDateError(string $dateExam): string
 {
     if ($dateExam === '') {
@@ -49,6 +74,7 @@ function placementDateError(string $dateExam): string
     return '';
 }
 
+// informations par défaut pour le placement, peut être réinitialisé par l'utilisateur
 function placementDefaultState(): array
 {
     return [
@@ -94,6 +120,38 @@ function placementFindById(array $items, int $id): ?array
     }
 
     return null;
+}
+
+function placementStudentCount(int $groupId): int
+{
+    return $groupId === 0 ? 16 : 28;
+}
+
+function placementCombinationsForView(array $combinations, array $salles): array
+{
+    $roomUsage = [];
+    $view = [];
+
+    foreach ($combinations as $combination) {
+        $roomId = (int) $combination['salle_id'];
+        $salle = placementFindById($salles, $roomId);
+        $capacity = (int) ($salle['capacite'] ?? 0);
+        $studentCount = (int) ($combination['student_count'] ?? 0);
+
+        if (!isset($roomUsage[$roomId])) {
+            $roomUsage[$roomId] = 0;
+        }
+
+        $roomUsage[$roomId] += $studentCount;
+        $freeSeats = max($capacity - $roomUsage[$roomId], 0);
+
+        $view[] = $combination + [
+            'free_seats' => $freeSeats,
+            'total_seats' => $capacity,
+        ];
+    }
+
+    return $view;
 }
 
 function placementBuildPlacements(array $combinations, array $salles): array
@@ -246,11 +304,13 @@ switch ($page) {
                     $state['combinations'][] = [
                         'id' => $state['next_combination_id']++,
                         'promo_id' => $promoId,
+                        'group_id' => $groupId,
                         'salle_id' => $salleId,
                         'promo_label' => $promo['label'],
                         'group_label' => $groupe['label'] ?? 'Toute la promotion',
                         'matiere_label' => $matiere['nom'],
                         'salle_label' => $salle['nom'],
+                        'student_count' => placementStudentCount($groupId),
                     ];
                 }
             }
@@ -292,7 +352,7 @@ switch ($page) {
             'groupes' => $data['groupes'],
             'matieres' => $data['matieres'],
             'salles' => $data['salles'],
-            'combinations' => $state['combinations'],
+            'combinations' => placementCombinationsForView($state['combinations'], $data['salles']),
             'placements' => $state['placements'],
         ]);
         break;
