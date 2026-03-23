@@ -164,7 +164,7 @@
     <div class="loading-overlay" id="loading-overlay" aria-hidden="true">
         <div class="loading-card" role="status" aria-live="polite">
             <div class="loading-spinner"></div>
-            <span>Chargement du placement...</span>
+            <span>Chargement en cours...</span>
         </div>
     </div>
 
@@ -463,9 +463,7 @@
                                 <span>{{ room.supervisor }}</span>
                             </div>
                             <div class="export-links">
-                                <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=room_list&room={{ room.id }}">Liste salle</a>
-                                <a class="btn secondary" target="_blank" href="index.php?p=placement_export&type=attendance&room={{ room.id }}">Feuille d’émargement</a>
-                                <a class="btn ghost" target="_blank" href="index.php?p=placement_export&type=plan&room={{ room.id }}">Plan de salle</a>
+                                <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=room_list&room={{ room.id }}">Plan pour {{ room.name }}</a>
                             </div>
                         </article>
                     {% endfor %}
@@ -478,7 +476,7 @@
                                 <span>Toutes salles confondues</span>
                             </div>
                             <div class="export-links">
-                                <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=promo_list&promo={{ promo.id }}">Liste par promotion</a>
+                                <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=promo_list&promo={{ promo.id }}">Plans pour toutes les salles</a>
                             </div>
                         </article>
                     {% endfor %}
