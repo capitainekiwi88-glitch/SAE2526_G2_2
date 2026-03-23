@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement</title>
+    <style>
+        :root {
+            --bg: #edf2f7;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --line: #d8e1ea;
+            --text: #16324f;
+            --muted: #64748b;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #dff1ff;
+            --success: #198754;
+            --warning: #d97706;
+            --danger: #c2410c;
+            --seat: #f5fbff;
+            --seat-selected: #dbeafe;
+            --seat-empty: #f8fafc;
+            --corridor: #dbe4ee;
+            --accessible: #ecfdf3;
+            --shadow: 0 18px 45px rgba(15, 108, 189, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f3f4f6; color: var(--text); }
+        a { color: inherit; }
+        .page { max-width: 1240px; margin: 0 auto; padding: 16px 16px 36px; }
+        .hero, .panel, .stage-panel, .room-card, .export-card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+        .hero { margin-top: 10px; padding: 18px 20px; display: grid; grid-template-columns: 1.5fr .85fr; gap: 16px; align-items: start; }
+        .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary-dark); background: var(--accent); border-radius: 999px; padding: 8px 14px; }
+        .hero h1 { margin: 6px 0 8px; font-size: 1.25rem; line-height: 1.2; font-weight: 700; }
+        .hero p { margin: 0; font-size: .98rem; line-height: 1.45; color: var(--muted); max-width: 52ch; }
+        .hero-aside { display: grid; gap: 10px; }
+        .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .metric { background: linear-gradient(180deg, #f9fcff 0%, #eef6fc 100%); border: 1px solid #d9e9f5; border-radius: 16px; padding: 12px 14px; }
+        .metric strong { display: block; font-size: 1.15rem; color: var(--primary-dark); margin-bottom: 4px; }
+        .metric span { color: var(--muted); font-size: .82rem; line-height: 1.3; }
+        .stage-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+        .stage-chip { border-radius: 14px; padding: 8px 12px; border: 1px solid var(--line); background: rgba(255,255,255,.62); min-height: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .stage-chip.active { background: linear-gradient(180deg, #0f6cbd 0%, #0f5aa1 100%); color: #fff; border-color: transparent; box-shadow: 0 16px 35px rgba(15, 108, 189, .22); }
+        .stage-chip.locked { background: linear-gradient(180deg, #f3f6f9 0%, #e6edf4 100%); color: #8a99ab; border-color: #d5dee8; box-shadow: none; opacity: .88; filter: grayscale(.18); }
+        .stage-chip strong { display: block; margin-bottom: 1px; font-size: .84rem; }
+        .stage-chip span { color: inherit; opacity: .88; font-size: .75rem; line-height: 1.15; max-width: 24ch; }
+        .warning-list { display: grid; gap: 10px; margin-bottom: 18px; }
+        .warning { background: #fff8eb; color: #9a5b00; border: 1px solid #f3d193; border-radius: 16px; padding: 14px 16px; }
+        .stage-panel { padding: 24px; margin-bottom: 18px; }
+        .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+        .section-head h2 { margin: 0; font-size: 1.15rem; }
+        .section-head p { margin: 6px 0 0; color: var(--muted); line-height: 1.5; }
+        .form-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px 18px; align-items: end; }
+        .field { display: grid; gap: 8px; }
+        .field label { font-size: .88rem; font-weight: 700; color: var(--text); }
+        .field input, .field select { width: 100%; min-width: 0; min-height: 44px; border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: var(--surface-soft); color: var(--text); font: inherit; }
+        .field-error { font-size: .82rem; color: #dc2626; font-weight: 600; }
+        .field-hint { font-size: .82rem; color: var(--muted); }
+        .subgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .setup-layout { display: grid; grid-template-columns: 1fr; gap: 18px; }
+        .panel { padding: 20px; }
+        .field-date { grid-column: span 4; }
+        .field-start { grid-column: span 2; }
+        .field-duration { grid-column: span 2; }
+        .field-promo { grid-column: span 4; }
+        .field-group { grid-column: span 4; }
+        .field-matiere { grid-column: span 4; }
+        .field-salle { grid-column: span 4; }
+        .field-actions { grid-column: 1 / -1; align-self: stretch; }
+        .combo-table { width: 100%; border-collapse: collapse; }
+        .combo-table th, .combo-table td { padding: 14px 10px; border-bottom: 1px solid #e7eef5; text-align: left; vertical-align: middle; }
+        .combo-table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+        .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 10px; font-size: .78rem; font-weight: 700; }
+        .badge.primary { background: #dbeafe; color: #1d4ed8; }
+        .badge.neutral { background: #e2e8f0; color: #334155; }
+        .badge.success { background: #dcfce7; color: #166534; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+        .field-actions .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-top: 0; }
+        .stage-footer { display: flex; justify-content: flex-end; margin-top: 18px; }
+        .stage-footer.between { justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .btn, .btn-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 14px; border: 1px solid transparent; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; transition: .18s ease; }
+        .btn.primary { background: var(--primary); color: #fff; }
+        .btn.primary:hover { background: var(--primary-dark); }
+        .btn.secondary { background: #eff5fb; color: var(--text); border-color: #d2dfec; }
+        .btn.secondary:hover { background: #e6eef7; }
+        .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+        .btn.warn { background: #fff4e5; color: var(--danger); border-color: #f4d2b3; }
+        .btn.small { min-height: 38px; padding: 0 12px; border-radius: 12px; font-size: .88rem; }
+        .btn.compact { min-height: 38px; padding: 0 14px; border-radius: 12px; font-size: .88rem; }
+        .btn-icon { background: none; border: none; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+        .empty-state { border: 1px dashed #c4d2df; border-radius: 18px; padding: 28px; text-align: center; color: var(--muted); background: linear-gradient(180deg, #f9fbfd 0%, #f3f7fa 100%); }
+        .room-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .room-tab { min-height: 36px; border-radius: 999px; border: 1px solid var(--line); padding: 0 14px; background: #f3f7fb; color: var(--text); font-weight: 700; font-size: .9rem; cursor: pointer; }
+        .room-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .room-card { padding: 16px; }
+        .room-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+        .room-grid { display: grid; gap: 10px; }
+        .seat-grid { display: grid; gap: 6px; justify-content: start; overflow-x: auto; padding-bottom: 6px; }
+        .seat-row { display: flex; gap: 6px; }
+        .seat, .seat-corridor { width: 116px; min-height: 68px; border-radius: 12px; }
+        .seat { border: 1px solid #d6e5f1; background: var(--seat); cursor: pointer; padding: 8px; text-align: left; position: relative; }
+        .seat.accessible { background: var(--accessible); border-color: #b8e5c5; }
+        .seat.is-empty { background: var(--seat-empty); border-style: dashed; }
+        .seat.selected { outline: 3px solid #93c5fd; background: var(--seat-selected); }
+        .seat-number { position: absolute; top: 8px; right: 8px; font-size: .68rem; font-weight: 700; color: var(--primary-dark); }
+        .seat-name { display: block; margin-top: 8px; font-weight: 700; font-size: .8rem; line-height: 1.15; padding-right: 18px; }
+        .seat-subtitle { display: block; margin-top: 5px; color: var(--muted); font-size: .68rem; line-height: 1.2; }
+        .seat-corridor { background: linear-gradient(180deg, #dfe8f1 0%, #d3dde8 100%); border: 1px dashed #b5c3d0; display: flex; align-items: center; justify-content: center; color: #5f7185; font-size: .72rem; font-weight: 700; }
+        .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        .legend span { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .87rem; }
+        .legend i { width: 18px; height: 18px; border-radius: 6px; display: inline-block; border: 1px solid #cdd9e5; }
+        .legend .sample-seat { background: var(--seat); }
+        .legend .sample-accessible { background: var(--accessible); border-color: #b8e5c5; }
+        .legend .sample-empty { background: var(--seat-empty); border-style: dashed; }
+        .legend .sample-selected { background: var(--seat-selected); border-color: #93c5fd; }
+        .export-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+        .export-card { padding: 18px; }
+        .export-card h3 { margin: 0 0 10px; font-size: 1.1rem; }
+        .export-links { display: grid; gap: 10px; margin-top: 16px; }
+        .export-links a { text-decoration: none; }
+        .summary-line { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: .92rem; }
+        .desk-label { margin-top: 10px; border-radius: 10px; border: 1px solid #bfd4e6; padding: 8px 12px; width: fit-content; background: #edf6fd; color: var(--primary-dark); font-weight: 700; font-size: .88rem; }
+        .room-panel { display: none; }
+        .room-panel.active { display: block; }
+        @media (max-width: 1080px) {
+            .hero, .setup-layout { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .field-date, .field-start, .field-duration, .field-promo, .field-group, .field-matiere, .field-salle, .field-actions { grid-column: auto; }
+        }
+        @media (max-width: 720px) {
+            .page { padding-inline: 12px; }
+            .stage-strip { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .metric-grid { grid-template-columns: 1fr; }
+            .section-head { flex-direction: column; }
+            .subgrid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html.twig' %}
+
+    <main class="page">
+        <section class="hero">
+            <div>
+                <h1>Placement</h1>
+                <p>
+                    Création d'un plan de placement des étudiants
+                </p>
+            </div>
+            
+        </section>
+
+        <section class="stage-strip">
+            <div class="stage-chip {{ current_stage == 1 ? 'active' }}">
+                <strong>Étape 1 : Création du devoir</strong>
+            </div>
+            <div class="stage-chip {{ current_stage == 2 ? 'active' : (current_stage < 2 ? 'locked' : '') }}">
+                <strong>Étape 2 : Placement des étudiants</strong>
+            </div>
+            <div class="stage-chip {{ current_stage == 3 ? 'active' : (current_stage < 3 ? 'locked' : '') }}">
+                <strong>Étape 3 : Conversion en PDF</strong>
+            </div>
+        </section>
+
+        {% if warnings %}
+            <div class="warning-list">
+                {% for warning in warnings %}
+                    <div class="warning">{{ warning }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if current_stage == 1 %}
+            <section class="stage-panel">
+                <div class="section-head">
+                    <div>
+                        <h2>Informations sur le devoir :</h2>
+                    </div>
+                    <form method="post">
+                    </form>
+                </div>
+
+                <div class="setup-layout">
+                    <form method="post" class="panel" id="placementSetupForm">
+                        <div class="form-grid">
+                            <div class="field field-date">
+                                <label for="date_exam">Date du devoir</label>
+                                <input type="date" id="date_exam" name="date_exam" value="{{ exam.date }}" min="{{ today_iso }}">
+                                {% if date_error %}
+                                    <div class="field-error">{{ date_error }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="field field-start">
+                                <label>Heure de début</label>
+                                <div class="subgrid">
+                                    <select name="start_hour">
+                                        {% for hour in 8..18 %}
+                                            {% set value = '%02d'|format(hour) %}
+                                            <option value="{{ value }}" {{ exam.start_hour == value ? 'selected' }}>{{ value }} h</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select name="start_minute">
+                                        {% for minute in ['00', '15', '30', '45'] %}
+                                            <option value="{{ minute }}" {{ exam.start_minute == minute ? 'selected' }}>{{ minute }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field field-duration">
+                                <label>Durée</label>
+                                <div class="subgrid">
+                                    <select name="duration_hour">
+                                        {% for hour in 0..6 %}
+                                            {% set value = '%02d'|format(hour) %}
+                                            <option value="{{ value }}" {{ exam.duration_hour == value ? 'selected' }}>{{ value }} h</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select name="duration_minute">
+                                        {% for minute in ['00', '15', '30', '45'] %}
+                                            <option value="{{ minute }}" {{ exam.duration_minute == minute ? 'selected' }}>{{ minute }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field field-promo">
+                                <label for="promo_id">Promotion</label>
+                                <select id="promo_id" name="promo_id">
+                                    {% for promo in promotions %}
+                                        <option value="{{ promo.id }}">{{ promo.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="field field-group">
+                                <label for="group_id">Groupe</label>
+                                <select id="group_id" name="group_id">
+                                    <option value="0">Toute la promotion</option>
+                                    {% for groupe in groupes %}
+                                        <option value="{{ groupe.id }}" data-promo="{{ groupe.promo_id }}">{{ groupe.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="field field-matiere">
+                                <label for="matiere_id">Matière</label>
+                                <select id="matiere_id" name="matiere_id">
+                                    {% for matiere in matieres %}
+                                        <option value="{{ matiere.id }}" data-promo="{{ matiere.promo_id }}">{{ matiere.nom }} · {{ matiere.promo_label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="field field-salle">
+                                <label for="salle_id">Salle</label>
+                                <select id="salle_id" name="salle_id">
+                                    {% for salle in salles %}
+                                        <option value="{{ salle.id }}">{{ salle.nom }} · {{ salle.batiment }} · {{ salle.capacite }} places</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="field field-actions">
+                                <div class="toolbar" style="margin-top:0;">
+                                    <button class="btn primary" type="submit" name="action" value="add_combination">+ Ajouter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="panel">
+                        <div class="section-head" style="margin-bottom:14px;">
+                            <div>
+                                <h2 style="font-size:1.15rem;">Récapitulatif :</h2>
+                            </div>
+                        </div>
+
+                        {% if combinations %}
+                            <table class="combo-table">
+                                <thead>
+                                    <tr>
+                                        <th>Promotion</th>
+                                        <th>Groupe</th>
+                                        <th>Matière</th>
+                                        <th>Salle</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for combination in combinations %}
+                                        <tr>
+                                            <td><span class="badge primary">{{ combination.promo_label }}</span></td>
+                                            <td><span class="badge neutral">{{ combination.group_label }}</span></td>
+                                            <td>{{ combination.matiere_label }}</td>
+                                            <td><span class="badge success">{{ combination.salle_label }}</span></td>
+                                            <td style="text-align:right;">
+                                                <form method="post">
+                                                    <input type="hidden" name="combination_id" value="{{ combination.id }}">
+                                                    <button class="btn-icon" type="submit" name="action" value="remove_combination" title="Retirer">
+                                                        <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="empty-state">
+                                Aucun étudiants n'a été ajouté.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="stage-footer">
+                    <button class="btn primary" type="submit" name="action" value="generate_placements" form="placementSetupForm" {{ combinations is empty ? 'disabled' }}> --> Passer à l'étape suivante</button>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if current_stage == 2 %}
+            <section class="stage-panel">
+                <div class="section-head">
+                    <div>
+                        <h2>Placement en salle :</h2>
+                    </div>
+                </div>
+
+                {% if placements.rooms %}
+                    <div class="room-tabs">
+                        {% for room in placements.rooms %}
+                            <button class="room-tab {{ loop.first ? 'active' }}" type="button" data-room-tab="{{ room.id }}">{{ room.name }}</button>
+                        {% endfor %}
+                    </div>
+
+                    {% for room in placements.rooms %}
+                        <div class="room-panel {{ loop.first ? 'active' }}" data-room-panel="{{ room.id }}">
+                            <article class="room-card">
+                                <h3 style="margin:0; font-size:1.35rem;">{{ room.name }} · {{ room.building }}</h3>
+                                <div class="room-meta">
+                                    <span class="badge primary">{{ room.student_count }} étudiant(s) placés</span>
+                                    <span class="badge neutral">{{ room.capacity }} places exploitables</span>
+                                    <span class="badge neutral">Surveillance : {{ room.supervisor }}</span>
+                                </div>
+
+                                <div class="summary-line">
+                                    {% for label in room.combination_labels %}
+                                        <span>{{ label }}</span>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="toolbar">
+                                    <button class="btn primary compact swap-trigger" type="button" data-room-swap="{{ room.id }}" disabled>Intervertir les deux places sélectionnées</button>
+                                </div>
+
+                                <div class="room-grid">
+                                    <div class="seat-grid">
+                                        {% for row in room.layout %}
+                                            {% set row_index = loop.index0 %}
+                                            <div class="seat-row">
+                                                {% for cell in row %}
+                                                    {% set seat_key = row_index ~ '-' ~ loop.index0 %}
+                                                    {% if cell == 'aisle' %}
+                                                        <div class="seat-corridor">Allée</div>
+                                                    {% else %}
+                                                        {% set meta = attribute(room.seat_meta, seat_key) %}
+                                                        {% set occupant = attribute(room.assignments, seat_key) %}
+                                                        <button
+                                                            type="button"
+                                                            class="seat {{ cell == 'accessible' ? 'accessible' }} {{ occupant is null ? 'is-empty' }}"
+                                                            data-room="{{ room.id }}"
+                                                            data-seat-key="{{ seat_key }}"
+                                                        >
+                                                            <span class="seat-number">#{{ meta.number }}</span>
+                                                            <span class="seat-name">{{ occupant is null ? 'Place libre' : occupant.display_name }}</span>
+                                                            <span class="seat-subtitle">{{ occupant is null ? 'Aucun étudiant' : occupant.groupe }}</span>
+                                                        </button>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="desk-label">BUREAU</div>
+                                </div>
+
+                                <div class="legend">
+                                    <span><i class="sample-seat"></i>Place standard</span>
+                                    <span><i class="sample-accessible"></i>Place PMR</span>
+                                    <span><i class="sample-empty"></i>Place libre</span>
+                                    <span><i class="sample-selected"></i>Sélection active</span>
+                                </div>
+                            </article>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        Le placement n’a pas encore été généré. Revenir à l’étape 1 pour ajouter des étudiants.
+                    </div>
+                {% endif %}
+
+                <div class="stage-footer between">
+                    <form method="post"><button class="btn ghost" type="submit" name="action" value="go_to_setup"> <-- Retour à l’étape précédente</button></form>
+                    <form method="post"><button class="btn secondary" type="submit" name="action" value="go_to_exports"> --> Passer à l'étape suivante</button></form>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if current_stage == 3 %}
+            <section class="stage-panel">
+                <div class="section-head">
+                    <div>
+                        <h2>Étape 3 : conversion PDF</h2>
+                        <p>Chaque lien ouvre une version imprimable pensée pour “Imprimer / Enregistrer au format PDF” dans le navigateur.</p>
+                    </div>
+                    <div class="toolbar" style="margin-top:0;">
+                        <form method="post"><button class="btn ghost" type="submit" name="action" value="go_to_placement">Retour à l'étape précédente</button></form>
+                        <form method="post"><button class="btn secondary" type="submit" name="action" value="go_to_setup">Modifier le devoir</button></form>
+                    </div>
+                </div>
+
+                <div class="export-grid">
+                    {% for room in placements.rooms %}
+                        <article class="export-card">
+                            <h3>{{ room.name }}</h3>
+                            <div class="summary-line">
+                                <span>{{ room.student_count }} étudiant(s)</span>
+                                <span>{{ room.supervisor }}</span>
+                            </div>
+                            <div class="export-links">
+                                <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=room_list&room={{ room.id }}">Liste salle</a>
+                                <a class="btn secondary" target="_blank" href="index.php?p=placement_export&type=attendance&room={{ room.id }}">Feuille d’émargement</a>
+                                <a class="btn ghost" target="_blank" href="index.php?p=placement_export&type=plan&room={{ room.id }}">Plan de salle</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+
+                    {% for promo in placements.promo_exports %}
+                        <article class="export-card">
+                            <h3>{{ promo.label }}</h3>
+                            <div class="summary-line">
+                                <span>Export transversal</span>
+                                <span>Toutes salles confondues</span>
+                            </div>
+                            <div class="export-links">
+                                <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=promo_list&promo={{ promo.id }}">Liste par promotion</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+    </main>
+
+    <script>
+        (function () {
+            const promoSelect = document.getElementById('promo_id');
+            const groupSelect = document.getElementById('group_id');
+            const matiereSelect = document.getElementById('matiere_id');
+
+            function filterSelect(select, promoId, keepAllOption) {
+                if (!select) return;
+
+                const options = Array.from(select.querySelectorAll('option'));
+                let firstVisibleValue = keepAllOption ? '0' : null;
+
+                options.forEach((option) => {
+                    if (!option.dataset.promo) return;
+                    const visible = option.dataset.promo === promoId;
+                    option.hidden = !visible;
+                    if (visible && firstVisibleValue === null) {
+                        firstVisibleValue = option.value;
+                    }
+                });
+
+                const selected = select.options[select.selectedIndex];
+                if (!selected || (selected.hidden && !keepAllOption)) {
+                    select.value = firstVisibleValue || '';
+                }
+                if (!selected || selected.hidden) {
+                    select.value = firstVisibleValue || '0';
+                }
+            }
+
+            function syncPlacementFilters() {
+                if (!promoSelect) return;
+                const promoId = promoSelect.value;
+                filterSelect(groupSelect, promoId, true);
+                filterSelect(matiereSelect, promoId, false);
+            }
+
+            if (promoSelect) {
+                promoSelect.addEventListener('change', syncPlacementFilters);
+                syncPlacementFilters();
+            }
+
+            const tabs = Array.from(document.querySelectorAll('[data-room-tab]'));
+            const panels = Array.from(document.querySelectorAll('[data-room-panel]'));
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    const roomId = tab.dataset.roomTab;
+                    tabs.forEach((item) => item.classList.toggle('active', item === tab));
+                    panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.roomPanel === roomId));
+                });
+            });
+
+            const selections = {};
+            const seats = Array.from(document.querySelectorAll('.seat'));
+
+            function getSwapButton(roomId) {
+                return document.querySelector(`[data-room-swap="${roomId}"]`);
+            }
+
+            function clearSelection(roomId) {
+                (selections[roomId] || []).forEach((button) => button.classList.remove('selected'));
+                selections[roomId] = [];
+                const swapButton = getSwapButton(roomId);
+                if (swapButton) swapButton.disabled = true;
+            }
+
+            seats.forEach((seat) => {
+                seat.addEventListener('click', () => {
+                    const roomId = seat.dataset.room;
+                    const current = selections[roomId] || [];
+
+                    if (seat.classList.contains('selected')) {
+                        seat.classList.remove('selected');
+                        selections[roomId] = current.filter((item) => item !== seat);
+                    } else {
+                        if (current.length === 2) {
+                            clearSelection(roomId);
+                        }
+                        seat.classList.add('selected');
+                        selections[roomId] = [...(selections[roomId] || []), seat];
+                    }
+
+                    const swapButton = getSwapButton(roomId);
+                    if (swapButton) {
+                        swapButton.disabled = (selections[roomId] || []).length !== 2;
+                    }
+                });
+            });
+
+            document.querySelectorAll('.swap-trigger').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const roomId = button.dataset.roomSwap;
+                    const current = selections[roomId] || [];
+                    if (current.length !== 2) return;
+
+                    const body = new URLSearchParams({
+                        room_id: roomId,
+                        seat_a: current[0].dataset.seatKey,
+                        seat_b: current[1].dataset.seatKey
+                    });
+
+                    const response = await fetch('index.php?p=placement_swap', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                        body: body.toString()
+                    });
+                    const data = await response.json();
+
+                    if (!data.ok) {
+                        alert(data.message || 'Interversion impossible.');
+                        return;
+                    }
+
+                    const map = [
+                        [current[0], data.seatA],
+                        [current[1], data.seatB]
+                    ];
+
+                    map.forEach(([buttonNode, payload]) => {
+                        buttonNode.querySelector('.seat-name').textContent = payload.name;
+                        buttonNode.querySelector('.seat-subtitle').textContent = payload.subtitle;
+                        buttonNode.classList.toggle('is-empty', !!payload.empty);
+                    });
+
+                    clearSelection(roomId);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
