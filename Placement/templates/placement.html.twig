@@ -596,6 +596,10 @@
 
             document.querySelectorAll('form').forEach((form) => {
                 form.addEventListener('submit', () => {
+                    if (form.classList.contains('room-reroll-footer')) {
+                        sessionStorage.setItem('placementScrollY', String(window.scrollY));
+                        return;
+                    }
                     showLoadingOverlay();
                 });
             });
@@ -631,8 +635,6 @@
                     return;
                 }
 
-                showLoadingOverlay();
-
                 try {
                     const body = new URLSearchParams({
                         room_id: sourceSeat.dataset.room,
@@ -663,7 +665,6 @@
                     alert('Interversion impossible.');
                 } finally {
                     clearDragState();
-                    hideLoadingOverlay();
                 }
             }
 
@@ -706,6 +707,14 @@
             });
 
             window.addEventListener('pageshow', hideLoadingOverlay);
+
+            const savedScrollY = sessionStorage.getItem('placementScrollY');
+            if (savedScrollY !== null) {
+                sessionStorage.removeItem('placementScrollY');
+                window.requestAnimationFrame(() => {
+                    window.scrollTo({ top: Number(savedScrollY), behavior: 'auto' });
+                });
+            }
         })();
     </script>
 </body>
