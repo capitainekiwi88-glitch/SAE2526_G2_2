@@ -103,17 +103,17 @@
         .room-card { padding: 16px; }
         .room-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
         .room-grid { display: grid; gap: 10px; }
-        .seat-grid { display: grid; gap: 6px; justify-content: start; overflow-x: auto; padding-bottom: 6px; }
-        .seat-row { display: flex; gap: 6px; }
-        .seat, .seat-corridor { width: 116px; min-height: 68px; border-radius: 12px; }
-        .seat { border: 1px solid #d6e5f1; background: var(--seat); cursor: pointer; padding: 8px; text-align: left; position: relative; }
+        .seat-grid { display: grid; gap: 5px; justify-content: start; overflow: auto; padding-bottom: 6px; max-width: 100%; }
+        .seat-row { display: flex; gap: 5px; }
+        .seat, .seat-corridor, .seat-blocked { width: 84px; min-height: 40px; border-radius: 8px; }
+        .seat { border: 1px solid #d6e5f1; background: var(--seat); cursor: pointer; padding: 4px 6px; text-align: left; position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; overflow: hidden; }
         .seat.accessible { background: var(--accessible); border-color: #b8e5c5; }
         .seat.is-empty { background: var(--seat-empty); border-style: dashed; }
-        .seat.selected { outline: 3px solid #93c5fd; background: var(--seat-selected); }
-        .seat-number { position: absolute; top: 8px; right: 8px; font-size: .68rem; font-weight: 700; color: var(--primary-dark); }
-        .seat-name { display: block; margin-top: 8px; font-weight: 700; font-size: .8rem; line-height: 1.15; padding-right: 18px; }
-        .seat-subtitle { display: block; margin-top: 5px; color: var(--muted); font-size: .68rem; line-height: 1.2; }
-        .seat-corridor { background: linear-gradient(180deg, #dfe8f1 0%, #d3dde8 100%); border: 1px dashed #b5c3d0; display: flex; align-items: center; justify-content: center; color: #5f7185; font-size: .72rem; font-weight: 700; }
+        .seat.selected { outline: 2px solid #93c5fd; background: var(--seat-selected); }
+        .seat-code { display: block; width: 100%; font-size: .5rem; line-height: 1; color: var(--muted); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .seat-name { display: block; width: 100%; font-weight: 700; font-size: .56rem; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .seat-corridor { background: linear-gradient(180deg, #dfe8f1 0%, #d3dde8 100%); border: 1px dashed #b5c3d0; display: flex; align-items: center; justify-content: center; color: #5f7185; font-size: .58rem; font-weight: 700; }
+        .seat-blocked { background: #eef2f7; border: 1px solid #d7e0ea; }
         .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
         .legend span { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .87rem; }
         .legend i { width: 18px; height: 18px; border-radius: 6px; display: inline-block; border: 1px solid #cdd9e5; }
@@ -127,7 +127,7 @@
         .export-links { display: grid; gap: 10px; margin-top: 16px; }
         .export-links a { text-decoration: none; }
         .summary-line { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: .92rem; }
-        .desk-label { margin-top: 10px; border-radius: 10px; border: 1px solid #bfd4e6; padding: 8px 12px; width: fit-content; background: #edf6fd; color: var(--primary-dark); font-weight: 700; font-size: .88rem; }
+        .desk-label { margin: 10px auto 0; border-radius: 10px; border: 1px solid #bfd4e6; padding: 8px 12px; width: fit-content; background: #edf6fd; color: var(--primary-dark); font-weight: 700; font-size: .88rem; }
         .room-panel { display: none; }
         .room-panel.active { display: block; }
         @media (max-width: 1080px) {
@@ -371,11 +371,15 @@
                                     <div class="seat-grid">
                                         {% for row in room.layout %}
                                             {% set row_index = loop.index0 %}
+                                            {% set row_label = room.layout|length - row_index %}
                                             <div class="seat-row">
                                                 {% for cell in row %}
                                                     {% set seat_key = row_index ~ '-' ~ loop.index0 %}
+                                                    {% set col_label = loop.index0 + 1 %}
                                                     {% if cell == 'aisle' %}
                                                         <div class="seat-corridor">Allée</div>
+                                                    {% elseif cell == 'blocked' %}
+                                                        <div class="seat-blocked"></div>
                                                     {% else %}
                                                         {% set meta = attribute(room.seat_meta, seat_key) %}
                                                         {% set occupant = attribute(room.assignments, seat_key) %}
@@ -385,9 +389,8 @@
                                                             data-room="{{ room.id }}"
                                                             data-seat-key="{{ seat_key }}"
                                                         >
-                                                            <span class="seat-number">#{{ meta.number }}</span>
-                                                            <span class="seat-name">{{ occupant is null ? 'Place libre' : occupant.display_name }}</span>
-                                                            <span class="seat-subtitle">{{ occupant is null ? 'Aucun étudiant' : occupant.groupe }}</span>
+                                                            <span class="seat-code">{{ row_label }} - {{ col_label }}</span>
+                                                            <span class="seat-name">{{ occupant is null ? 'Libre' : occupant.display_name }}</span>
                                                         </button>
                                                     {% endif %}
                                                 {% endfor %}
@@ -631,7 +634,6 @@
 
                     map.forEach(([buttonNode, payload]) => {
                         buttonNode.querySelector('.seat-name').textContent = payload.name;
-                        buttonNode.querySelector('.seat-subtitle').textContent = payload.subtitle;
                         buttonNode.classList.toggle('is-empty', !!payload.empty);
                     });
 

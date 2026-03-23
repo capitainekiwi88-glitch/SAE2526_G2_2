@@ -47,8 +47,8 @@ function placementBaseData(): array
         'salles' => [
             ['id' => 1, 'nom' => 'Amphi A', 'batiment' => 'IUT', 'capacite' => 150],
             ['id' => 2, 'nom' => 'Amphi B', 'batiment' => 'IUT', 'capacite' => 150],
-            ['id' => 3, 'nom' => 'B09', 'batiment' => 'IUT', 'capacite' => 69],
-            ['id' => 4, 'nom' => 'E23', 'batiment' => 'IUT', 'capacite' => 74],
+            ['id' => 3, 'nom' => 'B09', 'batiment' => 'IUT', 'capacite' => 56],
+            ['id' => 4, 'nom' => 'E23', 'batiment' => 'IUT', 'capacite' => 32],
             
         ],
     ];
@@ -122,9 +122,136 @@ function placementFindById(array $items, int $id): ?array
     return null;
 }
 
-function placementStudentCount(int $groupId): int
+function placementStudentFixtures(): array
 {
-    return $groupId === 0 ? 16 : 28;
+    return [
+        2 => [
+            5 => [
+                ['ADAM', 'Mathis'],
+                ['ADOLPH', 'Noa'],
+                ['BAILLY', 'Clement'],
+                ['BARETH', 'Aymeric'],
+                ['BAYIHA-MBARGA', 'Dieudonne'],
+                ['BOUGUET', 'Thomas'],
+                ['BONKOSI', 'Ange'],
+                ['CHAOUCHI', 'Aksel'],
+                ['DARCIAUX', 'Yoann'],
+                ['DOBOS', 'Leo'],
+                ['FEIPEL', 'Aurelien'],
+                ['FUSCIELLO', 'Baptiste'],
+                ['MALLINGER', 'Robin'],
+                ['MARCHAL', 'Aurelien'],
+                ['PERON', 'Ethan'],
+                ['ALICI', 'Teoman'],
+                ['BENDEKKICHE', 'Sajad'],
+                ['BOSCAROL', 'Francis'],
+                ['EL-AAMERY', 'Ilyas'],
+                ['GRAINE', 'Yanis'],
+                ['ISHAK', 'Yacine'],
+                ['ILSER', 'Maxence'],
+                ['JOLY', 'Aurelien'],
+                ['PRANDATO', 'Jade'],
+                ['QUENTIN', 'Bastien'],
+                ['ROUMILI', 'Rabah'],
+                ['SWIATOKA', 'Maximilien'],
+                ['TAVERNI', 'Alexandre'],
+                ['TUNC', 'Yilmaz'],
+                ['WADDELL', 'Simon'],
+            ],
+            6 => [
+                ['ARSLAN', 'Aedem'],
+                ['BARRE', 'Alexandre'],
+                ['BENMOUEFFEK', 'Anais'],
+                ['COLASSE', 'Nathan'],
+                ['FADILY', 'Ikrame'],
+                ['FEISTHAUER', 'Simon'],
+                ['GOEPFERT-BROUTTAU', 'Mae'],
+                ['LAURI', 'Matteo'],
+                ['LEONARD--RUBECK', 'Enzo'],
+                ['ROUX', 'Mathieu'],
+                ['SCHUMACHER', 'Theo'],
+                ['SIMON', 'Leopold'],
+                ['TOK', 'Mikail'],
+                ['TOPAL', 'Fatih'],
+                ['BOUHOUCH', 'Chouaib'],
+                ['CORONA', 'Nikola'],
+                ['DENOYELLE', 'Victorien'],
+                ['FREY', 'Thomas'],
+                ['GAUZERE', 'Julien'],
+                ['GINOT', 'Auguste'],
+                ['HEYTENNE', 'Mathis'],
+                ['KHOUCHI', 'Inas'],
+                ['LUPO', 'Loic'],
+                ['MEDOU-AMOUGUI', 'Sam-Dylan'],
+                ['SCHOU', 'Lilian'],
+                ['STILLE', 'Evan'],
+                ['THIS', 'Esteban'],
+                ['TIRONI', 'Baptiste'],
+            ],
+            7 => [
+                ['GIORDANI', 'Enzo'],
+                ['GIRRES', 'Alice'],
+                ['HUET', 'Severin'],
+                ['KIRCHER', 'Nino'],
+                ['LADURLLE', 'Alexis'],
+                ['LAMBERT', 'Quentin'],
+                ['OUKARA', 'Anass'],
+                ['PETROVIC', 'Hugo'],
+                ['PIZETTE', 'Bartholome'],
+                ['PLANCHER', 'Matteo'],
+                ['RICHET', 'Fabien'],
+                ['SALVADORI', 'Theo'],
+                ['SCHAAL', 'Olivier'],
+                ['TRIBUT', 'Enzo'],
+                ['ZOLLER', 'Mathieu'],
+            ],
+        ],
+    ];
+}
+
+function placementGeneratedStudents(int $promoId, int $groupId): array
+{
+    $count = $groupId === 0 ? 16 : 8;
+    $students = [];
+    for ($i = 1; $i <= $count; $i++) {
+        $students[] = [
+            'display_name' => 'Etudiant ' . $promoId . '-' . $groupId . '-' . $i,
+        ];
+    }
+
+    return $students;
+}
+
+function placementStudentsForSelection(int $promoId, int $groupId): array
+{
+    $fixtures = placementStudentFixtures();
+
+    if ($groupId === 0) {
+        $students = [];
+        foreach ($fixtures[$promoId] ?? [] as $groupStudents) {
+            foreach ($groupStudents as [$nom, $prenom]) {
+                $students[] = ['display_name' => $prenom . ' ' . $nom];
+            }
+        }
+
+        if (!empty($students)) {
+            return $students;
+        }
+    }
+
+    if (isset($fixtures[$promoId][$groupId])) {
+        return array_map(
+            static fn(array $student): array => ['display_name' => $student[1] . ' ' . $student[0]],
+            $fixtures[$promoId][$groupId]
+        );
+    }
+
+    return placementGeneratedStudents($promoId, $groupId);
+}
+
+function placementStudentCount(int $promoId, int $groupId): int
+{
+    return count(placementStudentsForSelection($promoId, $groupId));
 }
 
 function placementCombinationsForView(array $combinations, array $salles): array
@@ -156,30 +283,20 @@ function placementCombinationsForView(array $combinations, array $salles): array
 
 function placementBuildPlacements(array $combinations, array $salles): array
 {
-    $layoutByRoom = [
-        1 => [
-            ['seat', 'seat', 'aisle', 'seat', 'seat'],
-            ['seat', 'seat', 'aisle', 'seat', 'seat'],
-        ],
-        2 => [
-            ['seat', 'seat', 'aisle', 'seat'],
-            ['seat', 'seat', 'aisle', 'seat'],
-        ],
-    ];
-
-    $names = [
-        ['Alice', 'MARTIN'],
-        ['Lucas', 'BERNARD'],
-        ['Ines', 'PETIT'],
-        ['Noah', 'ROBERT'],
-        ['Emma', 'RICHARD'],
-        ['Lina', 'DUBOIS'],
-        ['Adam', 'THOMAS'],
-        ['Zoé', 'MICHEL'],
-    ];
-
     $rooms = [];
     $promoExports = [];
+    $buildLayout = static function (int $capacity): array {
+        $layout = [];
+        for ($row = 0; $row < 15; $row++) {
+            $layout[$row] = [];
+            for ($col = 0; $col < 15; $col++) {
+                $seatIndexFromBottom = ((14 - $row) * 15) + $col + 1;
+                $layout[$row][$col] = $seatIndexFromBottom <= $capacity ? 'seat' : 'blocked';
+            }
+        }
+
+        return $layout;
+    };
 
     foreach ($combinations as $combination) {
         $roomId = (int) $combination['salle_id'];
@@ -189,16 +306,15 @@ function placementBuildPlacements(array $combinations, array $salles): array
         }
 
         if (!isset($rooms[$roomId])) {
-            $layout = $layoutByRoom[$roomId] ?? $layoutByRoom[1];
+            $layout = $buildLayout((int) $salle['capacite']);
             $seatMeta = [];
             $assignments = [];
-            $number = 1;
 
             foreach ($layout as $rowIndex => $row) {
                 foreach ($row as $colIndex => $cell) {
                     if ($cell === 'seat') {
                         $key = $rowIndex . '-' . $colIndex;
-                        $seatMeta[$key] = ['number' => $number++];
+                        $seatMeta[$key] = ['row' => $rowIndex, 'col' => $colIndex];
                         $assignments[$key] = null;
                     }
                 }
@@ -209,7 +325,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
                 'name' => $salle['nom'],
                 'building' => $salle['batiment'],
                 'student_count' => 0,
-                'capacity' => count($seatMeta),
+                'capacity' => (int) $salle['capacite'],
                 'supervisor' => 'Surveillant test',
                 'combination_labels' => [],
                 'layout' => $layout,
@@ -224,14 +340,11 @@ function placementBuildPlacements(array $combinations, array $salles): array
             'label' => $combination['promo_label'],
         ];
 
-        $students = [];
-        foreach ($names as $index => [$prenom, $nom]) {
-            $students[] = [
-                'display_name' => $prenom . ' ' . $nom,
-                'groupe' => $combination['group_label'],
-                'seed' => crc32($roomId . '|' . $combination['id'] . '|' . $index),
-            ];
+        $students = placementStudentsForSelection((int) $combination['promo_id'], (int) $combination['group_id']);
+        foreach ($students as $index => &$student) {
+            $student['seed'] = crc32($roomId . '|' . $combination['id'] . '|' . $index);
         }
+        unset($student);
         usort($students, static fn(array $a, array $b): int => $a['seed'] <=> $b['seed']);
 
         foreach ($rooms[$roomId]['assignments'] as $seatKey => $occupant) {
@@ -310,7 +423,7 @@ switch ($page) {
                         'group_label' => $groupe['label'] ?? 'Toute la promotion',
                         'matiere_label' => $matiere['nom'],
                         'salle_label' => $salle['nom'],
-                        'student_count' => placementStudentCount($groupId),
+                        'student_count' => placementStudentCount($promoId, $groupId),
                     ];
                 }
             }
