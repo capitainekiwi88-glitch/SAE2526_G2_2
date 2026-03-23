@@ -80,7 +80,11 @@
         .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
         .field-actions .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-top: 0; }
         .stage-footer { display: flex; justify-content: flex-end; margin-top: 18px; }
-        .stage-footer.between { justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .stage-footer.between { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+        .stage-footer.between form:last-child { justify-self: end; }
+        .stage-footer-center { display: flex; justify-content: center; }
+        .room-swap-footer { display: none; }
+        .room-swap-footer.active { display: inline-flex; }
         .btn, .btn-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 14px; border: 1px solid transparent; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; transition: .18s ease; }
         .btn.primary { background: var(--primary); color: #fff; }
         .btn.primary:hover { background: var(--primary-dark); }
@@ -103,9 +107,9 @@
         .room-card { padding: 16px; }
         .room-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
         .room-grid { display: grid; gap: 10px; }
-        .seat-grid { display: grid; gap: 5px; justify-content: start; overflow: auto; padding-bottom: 6px; max-width: 100%; }
-        .seat-row { display: flex; gap: 5px; }
-        .seat, .seat-corridor, .seat-blocked { width: 84px; min-height: 40px; border-radius: 8px; }
+        .seat-grid { display: grid; gap: 5px; width: 100%; }
+        .seat-row { display: grid; width: 100%; gap: 5px; grid-template-columns: repeat(15, minmax(0, 1fr)); }
+        .seat, .seat-corridor { min-height: 40px; border-radius: 8px; }
         .seat { border: 1px solid #d6e5f1; background: var(--seat); cursor: pointer; padding: 4px 6px; text-align: left; position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; overflow: hidden; }
         .seat.accessible { background: var(--accessible); border-color: #b8e5c5; }
         .seat.is-empty { background: var(--seat-empty); border-style: dashed; }
@@ -113,8 +117,7 @@
         .seat-code { display: block; width: 100%; font-size: .5rem; line-height: 1; color: var(--muted); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .seat-name { display: block; width: 100%; font-weight: 700; font-size: .56rem; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .seat-corridor { background: linear-gradient(180deg, #dfe8f1 0%, #d3dde8 100%); border: 1px dashed #b5c3d0; display: flex; align-items: center; justify-content: center; color: #5f7185; font-size: .58rem; font-weight: 700; }
-        .seat-blocked { background: #eef2f7; border: 1px solid #d7e0ea; }
-        .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; justify-content: center; }
         .legend span { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .87rem; }
         .legend i { width: 18px; height: 18px; border-radius: 6px; display: inline-block; border: 1px solid #cdd9e5; }
         .legend .sample-seat { background: var(--seat); }
@@ -127,6 +130,7 @@
         .export-links { display: grid; gap: 10px; margin-top: 16px; }
         .export-links a { text-decoration: none; }
         .summary-line { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: .92rem; }
+        .room-card > .summary-line { margin-bottom: 12px; }
         .desk-label { margin: 10px auto 0; border-radius: 10px; border: 1px solid #bfd4e6; padding: 8px 12px; width: fit-content; background: #edf6fd; color: var(--primary-dark); font-weight: 700; font-size: .88rem; }
         .room-panel { display: none; }
         .room-panel.active { display: block; }
@@ -363,10 +367,6 @@
                                     {% endfor %}
                                 </div>
 
-                                <div class="toolbar">
-                                    <button class="btn primary compact swap-trigger" type="button" data-room-swap="{{ room.id }}" disabled>Intervertir les deux places sélectionnées</button>
-                                </div>
-
                                 <div class="room-grid">
                                     <div class="seat-grid">
                                         {% for row in room.layout %}
@@ -378,8 +378,6 @@
                                                     {% set col_label = loop.index0 + 1 %}
                                                     {% if cell == 'aisle' %}
                                                         <div class="seat-corridor">Allée</div>
-                                                    {% elseif cell == 'blocked' %}
-                                                        <div class="seat-blocked"></div>
                                                     {% else %}
                                                         {% set meta = attribute(room.seat_meta, seat_key) %}
                                                         {% set occupant = attribute(room.assignments, seat_key) %}
@@ -390,7 +388,7 @@
                                                             data-seat-key="{{ seat_key }}"
                                                         >
                                                             <span class="seat-code">{{ row_label }} - {{ col_label }}</span>
-                                                            <span class="seat-name">{{ occupant is null ? 'Libre' : occupant.display_name }}</span>
+                                                            <span class="seat-name">{{ occupant is null ? '' : occupant.display_name }}</span>
                                                         </button>
                                                     {% endif %}
                                                 {% endfor %}
@@ -417,6 +415,11 @@
 
                 <div class="stage-footer between">
                     <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_setup"> <-- Retour à l’étape précédente</button></form>
+                    <div class="stage-footer-center">
+                        {% for room in placements.rooms %}
+                            <button class="btn primary compact swap-trigger room-swap-footer {{ loop.first ? 'active' }}" type="button" data-room-swap="{{ room.id }}" disabled>Intervertir les deux places sélectionnées</button>
+                        {% endfor %}
+                    </div>
                     <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_exports"> --> Passer à l'étape suivante</button></form>
                 </div>
             </section>
@@ -558,11 +561,13 @@
 
             const tabs = Array.from(document.querySelectorAll('[data-room-tab]'));
             const panels = Array.from(document.querySelectorAll('[data-room-panel]'));
+            const swapButtons = Array.from(document.querySelectorAll('.room-swap-footer'));
             tabs.forEach((tab) => {
                 tab.addEventListener('click', () => {
                     const roomId = tab.dataset.roomTab;
                     tabs.forEach((item) => item.classList.toggle('active', item === tab));
                     panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.roomPanel === roomId));
+                    swapButtons.forEach((button) => button.classList.toggle('active', button.dataset.roomSwap === roomId));
                 });
             });
 
@@ -570,7 +575,7 @@
             const seats = Array.from(document.querySelectorAll('.seat'));
 
             function getSwapButton(roomId) {
-                return document.querySelector(`[data-room-swap="${roomId}"]`);
+                return document.querySelector(`.room-swap-footer.active[data-room-swap="${roomId}"]`) || document.querySelector(`.room-swap-footer[data-room-swap="${roomId}"]`);
             }
 
             function clearSelection(roomId) {

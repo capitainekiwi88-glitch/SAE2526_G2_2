@@ -287,12 +287,12 @@ function placementBuildPlacements(array $combinations, array $salles): array
     $promoExports = [];
     $buildLayout = static function (int $capacity): array {
         $layout = [];
-        for ($row = 0; $row < 15; $row++) {
-            $layout[$row] = [];
-            for ($col = 0; $col < 15; $col++) {
-                $seatIndexFromBottom = ((14 - $row) * 15) + $col + 1;
-                $layout[$row][$col] = $seatIndexFromBottom <= $capacity ? 'seat' : 'blocked';
-            }
+        $rows = max(1, (int) ceil($capacity / 15));
+        $remaining = $capacity;
+        for ($row = 0; $row < $rows; $row++) {
+            $seatsInRow = min(15, $remaining);
+            $layout[$row] = array_fill(0, $seatsInRow, 'seat');
+            $remaining -= $seatsInRow;
         }
 
         return $layout;
@@ -314,7 +314,12 @@ function placementBuildPlacements(array $combinations, array $salles): array
                 foreach ($row as $colIndex => $cell) {
                     if ($cell === 'seat') {
                         $key = $rowIndex . '-' . $colIndex;
-                        $seatMeta[$key] = ['row' => $rowIndex, 'col' => $colIndex];
+                        $seatMeta[$key] = [
+                            'row' => $rowIndex,
+                            'col' => $colIndex,
+                            'row_label' => count($layout) - $rowIndex,
+                            'col_label' => $colIndex + 1,
+                        ];
                         $assignments[$key] = null;
                     }
                 }
@@ -347,8 +352,18 @@ function placementBuildPlacements(array $combinations, array $salles): array
         unset($student);
         usort($students, static fn(array $a, array $b): int => $a['seed'] <=> $b['seed']);
 
-        foreach ($rooms[$roomId]['assignments'] as $seatKey => $occupant) {
-            if ($occupant === null && !empty($students)) {
+        $seatKeys = array_keys($rooms[$roomId]['assignments']);
+        usort($seatKeys, static function (string $a, string $b): int {
+            [$rowA, $colA] = array_map('intval', explode('-', $a));
+            [$rowB, $colB] = array_map('intval', explode('-', $b));
+            if ($rowA !== $rowB) {
+                return $rowB <=> $rowA;
+            }
+            return $colA <=> $colB;
+        });
+
+        foreach ($seatKeys as $seatKey) {
+            if ($rooms[$roomId]['assignments'][$seatKey] === null && !empty($students)) {
                 $rooms[$roomId]['assignments'][$seatKey] = array_shift($students);
                 $rooms[$roomId]['student_count']++;
             }
@@ -366,6 +381,40 @@ function placementBuildPlacements(array $combinations, array $salles): array
     ];
 }
 
+function placementSwapSeats(array &$state, int $roomId, string $seatA, string $seatB): array
+{
+    foreach ($state['placements']['rooms'] as &$room) {
+        if ((int) $room['id'] !== $roomId) {
+            continue;
+        }
+
+        if (!array_key_exists($seatA, $room['assignments']) || !array_key_exists($seatB, $room['assignments'])) {
+            return ['ok' => false, 'message' => 'Places introuvables.'];
+        }
+
+        $studentA = $room['assignments'][$seatA];
+        $studentB = $room['assignments'][$seatB];
+
+        $room['assignments'][$seatA] = $studentB;
+        $room['assignments'][$seatB] = $studentA;
+
+        return [
+            'ok' => true,
+            'seatA' => [
+                'name' => $studentB['display_name'] ?? 'Libre',
+                'empty' => $studentB === null,
+            ],
+            'seatB' => [
+                'name' => $studentA['display_name'] ?? 'Libre',
+                'empty' => $studentA === null,
+            ],
+        ];
+    }
+    unset($room);
+
+    return ['ok' => false, 'message' => 'Salle introuvable.'];
+}
+
 $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../templates');
 $twig = new \Twig\Environment($loader, [
     'cache' => false,
@@ -377,6 +426,19 @@ $page = $_GET['p'] ?? 'home';
 
 //j'ai mit un jeu de donnée temporaire pour tester l'affichage.
 switch ($page) {
+    case 'placement_swap':
+        header('Content-Type: application/json; charset=utf-8');
+        $state = &placementState();
+        echo json_encode(
+            placementSwapSeats(
+                $state,
+                (int) ($_POST['room_id'] ?? 0),
+                (string) ($_POST['seat_a'] ?? ''),
+                (string) ($_POST['seat_b'] ?? '')
+            )
+        );
+        exit;
+
     case 'util_placement':
         $data = placementBaseData();
         $state = &placementState();
