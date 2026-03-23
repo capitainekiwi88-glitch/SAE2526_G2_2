@@ -167,7 +167,7 @@ function placementStudentFixtures(): array
                 ['COLASSE', 'Nathan'],
                 ['FADILY', 'Ikrame'],
                 ['FEISTHAUER', 'Simon'],
-                ['GOEPFERT-BROUTTAU', 'Mae'],
+                ['GOEPFERT-BROUTTA', 'Maé'],
                 ['LAURI', 'Matteo'],
                 ['LEONARD--RUBECK', 'Enzo'],
                 ['ROUX', 'Mathieu'],
@@ -195,14 +195,14 @@ function placementStudentFixtures(): array
                 ['GIRRES', 'Alice'],
                 ['HUET', 'Severin'],
                 ['KIRCHER', 'Nino'],
-                ['LADURLLE', 'Alexis'],
+                ['LADURELLE', 'Alexis'],
                 ['LAMBERT', 'Quentin'],
                 ['OUKARA', 'Anass'],
                 ['PETROVIC', 'Hugo'],
                 ['PIZETTE', 'Bartholome'],
-                ['PLANCHER', 'Matteo'],
+                ['PLANCHER', 'Mattéo'],
                 ['RICHET', 'Fabien'],
-                ['SALVADORI', 'Theo'],
+                ['SALVADORI', 'Théo'],
                 ['SCHAAL', 'Olivier'],
                 ['TRIBUT', 'Enzo'],
                 ['ZOLLER', 'Mathieu'],
@@ -232,7 +232,7 @@ function placementStudentsForSelection(int $promoId, int $groupId): array
         $students = [];
         foreach ($fixtures[$promoId] ?? [] as $groupStudents) {
             foreach ($groupStudents as [$nom, $prenom]) {
-                $students[] = ['display_name' => $prenom . ' ' . $nom];
+                $students[] = ['display_name' => $nom . ' ' . $prenom];
             }
         }
 
@@ -243,7 +243,7 @@ function placementStudentsForSelection(int $promoId, int $groupId): array
 
     if (isset($fixtures[$promoId][$groupId])) {
         return array_map(
-            static fn(array $student): array => ['display_name' => $student[1] . ' ' . $student[0]],
+            static fn(array $student): array => ['display_name' => $student[0] . ' ' . $student[1]],
             $fixtures[$promoId][$groupId]
         );
     }

@@ -83,8 +83,6 @@
         .stage-footer.between { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
         .stage-footer.between form:last-child { justify-self: end; }
         .stage-footer-center { display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .room-swap-footer { display: none; }
-        .room-swap-footer.active { display: inline-flex; }
         .room-reroll-footer { display: none; margin: 0; }
         .room-reroll-footer.active { display: inline-flex; }
         .loading-overlay { position: fixed; inset: 0; background: rgba(243, 244, 246, 0.88); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 1000; }
@@ -123,7 +121,8 @@
         .seat { border: 1px solid #d6e5f1; background: var(--seat); cursor: pointer; padding: 4px 6px; text-align: left; position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; overflow: hidden; }
         .seat.accessible { background: var(--accessible); border-color: #b8e5c5; }
         .seat.is-empty { background: var(--seat-empty); border-style: dashed; }
-        .seat.selected { outline: 2px solid #93c5fd; background: var(--seat-selected); }
+        .seat.dragging { opacity: .55; cursor: grabbing; }
+        .seat.drop-target { outline: 2px solid #93c5fd; background: var(--seat-selected); }
         .seat-code { display: block; width: 100%; font-size: .5rem; line-height: 1; color: var(--muted); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .seat-name { display: block; width: 100%; font-weight: 700; font-size: .56rem; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .seat-corridor { background: linear-gradient(180deg, #dfe8f1 0%, #d3dde8 100%); border: 1px dashed #b5c3d0; display: flex; align-items: center; justify-content: center; color: #5f7185; font-size: .58rem; font-weight: 700; }
@@ -419,7 +418,7 @@
                                     <span><i class="sample-seat"></i>Place standard</span>
                                     <span><i class="sample-accessible"></i>Place PMR</span>
                                     <span><i class="sample-empty"></i>Place libre</span>
-                                    <span><i class="sample-selected"></i>Sélection active</span>
+                                    <span><i class="sample-selected"></i>Zone de dépôt</span>
                                 </div>
                             </article>
                         </div>
@@ -434,7 +433,6 @@
                     <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_setup"> <-- Retour à l’étape précédente</button></form>
                     <div class="stage-footer-center">
                         {% for room in placements.rooms %}
-                            <button class="btn primary compact swap-trigger room-swap-footer {{ loop.first ? 'active' }}" type="button" data-room-swap="{{ room.id }}" disabled>Intervertir les deux places sélectionnées</button>
                             <form method="post" class="room-reroll-footer {{ loop.first ? 'active' }}" data-room-reroll="{{ room.id }}">
                                 <button class="btn secondary compact" type="submit" name="action" value="reroll_placements">Relancer le placement aléatoire</button>
                             </form>
@@ -581,7 +579,6 @@
 
             const tabs = Array.from(document.querySelectorAll('[data-room-tab]'));
             const panels = Array.from(document.querySelectorAll('[data-room-panel]'));
-            const swapButtons = Array.from(document.querySelectorAll('.room-swap-footer'));
             const rerollForms = Array.from(document.querySelectorAll('.room-reroll-footer'));
             const loadingOverlay = document.getElementById('loading-overlay');
 
@@ -608,91 +605,103 @@
                     const roomId = tab.dataset.roomTab;
                     tabs.forEach((item) => item.classList.toggle('active', item === tab));
                     panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.roomPanel === roomId));
-                    swapButtons.forEach((button) => button.classList.toggle('active', button.dataset.roomSwap === roomId));
                     rerollForms.forEach((form) => form.classList.toggle('active', form.dataset.roomReroll === roomId));
                 });
             });
 
-            const selections = {};
             const seats = Array.from(document.querySelectorAll('.seat'));
+            let draggedSeat = null;
 
-            function getSwapButton(roomId) {
-                return document.querySelector(`.room-swap-footer.active[data-room-swap="${roomId}"]`) || document.querySelector(`.room-swap-footer[data-room-swap="${roomId}"]`);
+            function clearDragState() {
+                seats.forEach((seat) => {
+                    seat.classList.remove('dragging');
+                    seat.classList.remove('drop-target');
+                });
+                draggedSeat = null;
             }
 
-            function clearSelection(roomId) {
-                (selections[roomId] || []).forEach((button) => button.classList.remove('selected'));
-                selections[roomId] = [];
-                const swapButton = getSwapButton(roomId);
-                if (swapButton) swapButton.disabled = true;
+            async function swapSeats(sourceSeat, targetSeat) {
+                if (!sourceSeat || !targetSeat || sourceSeat === targetSeat) {
+                    clearDragState();
+                    return;
+                }
+
+                if (sourceSeat.dataset.room !== targetSeat.dataset.room) {
+                    clearDragState();
+                    return;
+                }
+
+                showLoadingOverlay();
+
+                try {
+                    const body = new URLSearchParams({
+                        room_id: sourceSeat.dataset.room,
+                        seat_a: sourceSeat.dataset.seatKey,
+                        seat_b: targetSeat.dataset.seatKey
+                    });
+
+                    const response = await fetch('index.php?p=placement_swap', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                        body: body.toString()
+                    });
+                    const data = await response.json();
+
+                    if (!data.ok) {
+                        alert(data.message || 'Interversion impossible.');
+                        return;
+                    }
+
+                    [
+                        [sourceSeat, data.seatA],
+                        [targetSeat, data.seatB]
+                    ].forEach(([buttonNode, payload]) => {
+                        buttonNode.querySelector('.seat-name').textContent = payload.name;
+                        buttonNode.classList.toggle('is-empty', !!payload.empty);
+                    });
+                } catch (error) {
+                    alert('Interversion impossible.');
+                } finally {
+                    clearDragState();
+                    hideLoadingOverlay();
+                }
             }
 
             seats.forEach((seat) => {
-                seat.addEventListener('click', () => {
-                    const roomId = seat.dataset.room;
-                    const current = selections[roomId] || [];
+                seat.draggable = true;
 
-                    if (seat.classList.contains('selected')) {
-                        seat.classList.remove('selected');
-                        selections[roomId] = current.filter((item) => item !== seat);
-                    } else {
-                        if (current.length === 2) {
-                            clearSelection(roomId);
-                        }
-                        seat.classList.add('selected');
-                        selections[roomId] = [...(selections[roomId] || []), seat];
-                    }
-
-                    const swapButton = getSwapButton(roomId);
-                    if (swapButton) {
-                        swapButton.disabled = (selections[roomId] || []).length !== 2;
+                seat.addEventListener('dragstart', (event) => {
+                    draggedSeat = seat;
+                    seat.classList.add('dragging');
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('text/plain', seat.dataset.seatKey || '');
                     }
                 });
-            });
 
-            document.querySelectorAll('.swap-trigger').forEach((button) => {
-                button.addEventListener('click', async () => {
-                    const roomId = button.dataset.roomSwap;
-                    const current = selections[roomId] || [];
-                    if (current.length !== 2) return;
-
-                    showLoadingOverlay();
-
-                    try {
-                        const body = new URLSearchParams({
-                            room_id: roomId,
-                            seat_a: current[0].dataset.seatKey,
-                            seat_b: current[1].dataset.seatKey
-                        });
-
-                        const response = await fetch('index.php?p=placement_swap', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                            body: body.toString()
-                        });
-                        const data = await response.json();
-
-                        if (!data.ok) {
-                            alert(data.message || 'Interversion impossible.');
-                            return;
-                        }
-
-                        const map = [
-                            [current[0], data.seatA],
-                            [current[1], data.seatB]
-                        ];
-
-                        map.forEach(([buttonNode, payload]) => {
-                            buttonNode.querySelector('.seat-name').textContent = payload.name;
-                            buttonNode.classList.toggle('is-empty', !!payload.empty);
-                        });
-
-                        clearSelection(roomId);
-                    } catch (error) {
-                        alert('Interversion impossible.');
-                    } finally {
-                        hideLoadingOverlay();
+                seat.addEventListener('dragover', (event) => {
+                    if (!draggedSeat || draggedSeat === seat || draggedSeat.dataset.room !== seat.dataset.room) {
+                        return;
                     }
+                    event.preventDefault();
+                    if (event.dataTransfer) {
+                        event.dataTransfer.dropEffect = 'move';
+                    }
+                    seat.classList.add('drop-target');
+                });
+
+                seat.addEventListener('dragleave', () => {
+                    seat.classList.remove('drop-target');
+                });
+
+                seat.addEventListener('drop', async (event) => {
+                    event.preventDefault();
+                    seat.classList.remove('drop-target');
+                    await swapSeats(draggedSeat, seat);
+                });
+
+                seat.addEventListener('dragend', () => {
+                    clearDragState();
                 });
             });
 
