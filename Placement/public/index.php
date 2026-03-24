@@ -704,7 +704,7 @@ switch ($page) {
             }
         }
 
-        echo $twig->render('placement.html.twig', [
+        echo $twig->render('Placement/placement.html.twig', [
             'current_stage' => $state['current_stage'],
             'warnings' => [],
             'exam' => $state['exam'],
@@ -736,7 +736,7 @@ switch ($page) {
             ['id_mat' => 105, 'nom_mat' => 'Développement Web', 'nom_promo' => 'BUT2', 'nom_dpt' => 'INFO', 'annee' => '2025'],
             ['id_mat' => 106, 'nom_mat' => 'Architecture Réseau', 'nom_promo' => 'BUT3', 'nom_dpt' => 'INFO', 'annee' => '2025']
         ];
-        echo $twig->render('matiere.html.twig', [
+        echo $twig->render('Gestion/matiere.html.twig', [
             'matieres' => $matieres_test,
             'promotions' => $promotions_test
         ]);
@@ -749,7 +749,7 @@ switch ($page) {
             ['id_ens' => 4, 'nom' => 'Spengler', 'prenom' => 'Anne', 'sexe' => 'F', 'login' => 'spengler', 'admin' => 0]
         ];
 
-        echo $twig->render('enseignant.html.twig', [
+        echo $twig->render('Gestion/enseignant.html.twig', [
             'enseignants' => $enseignants_test
         ]);
         break;
@@ -782,14 +782,14 @@ switch ($page) {
             ]
         ];
 
-        echo $twig->render('enseignement.html.twig', [
+        echo $twig->render('Gestion/enseignement.html.twig', [
             'enseignants' => $enseignants_test,
             'matieres' => $matieres_test,
             'enseignements' => $enseignements_test
         ]);
         break;
     case 'gest_salle':
-        echo $twig->render('salle.html.twig', []);
+        echo $twig->render('Gestion/salle.html.twig', []);
         break;
 
     case 'gest_dpt':
@@ -798,7 +798,7 @@ switch ($page) {
             ['id_dpt' => 2, 'nom_dpt' => 'SD']
         ];
 
-        echo $twig->render('departement.html.twig', [
+        echo $twig->render('Gestion/departement.html.twig', [
             'departements' => $departements_test
         ]);
         break;
@@ -810,14 +810,14 @@ switch ($page) {
             ['id_bat' => 2, 'nom_bat' => 'Lettres et Langues', 'ad_bat' => 'Saulcy']
         ];
 
-        echo $twig->render('batiment.html.twig', [
+        echo $twig->render('Gestion/batiment.html.twig', [
             'batiments' => $batiments_test
         ]);
         break;
 
         
     case 'gest_promo':
-        echo $twig->render('promotion.html.twig', []);
+        echo $twig->render('Gestion/promotion.html.twig', []);
         break;
     default:
         echo $twig->render('index.html.twig', [

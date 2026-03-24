@@ -1,0 +1,87 @@
+<section class="stage-panel">
+    <div class="section-head">
+        <div>
+            <h2>Salles :</h2>
+        </div>
+    </div>
+
+    {% if placements.rooms %}
+        <div class="room-tabs">
+            {% for room in placements.rooms %}
+                <button class="room-tab {{ loop.first ? 'active' }}" type="button" data-room-tab="{{ room.id }}">{{ room.name }}</button>
+            {% endfor %}
+        </div>
+
+        {% for room in placements.rooms %}
+            <div class="room-panel {{ loop.first ? 'active' }}" data-room-panel="{{ room.id }}">
+                <article class="room-card">
+                    <h3 style="margin:0; font-size:1.35rem;">{{ room.name }} · {{ room.building }}</h3>
+                    <div class="room-meta">
+                        <span class="badge primary">{{ room.student_count }} étudiant(s) placés</span>
+                        <span class="badge neutral">{{ room.capacity }} places exploitables</span>
+                        <span class="badge neutral">Surveillance : {{ room.supervisor }}</span>
+                    </div>
+
+                    <div class="summary-line">
+                        {% for label in room.combination_labels %}
+                            <span>{{ label }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="room-grid">
+                        <div class="seat-grid">
+                            {% for row in room.layout %}
+                                {% set row_index = loop.index0 %}
+                                {% set row_label = room.layout|length - row_index %}
+                                <div class="seat-row">
+                                    {% for cell in row %}
+                                        {% set seat_key = row_index ~ '-' ~ loop.index0 %}
+                                        {% set col_label = loop.index0 + 1 %}
+                                        {% if cell == 'aisle' %}
+                                            <div class="seat-corridor">Allée</div>
+                                        {% else %}
+                                            {% set occupant = attribute(room.assignments, seat_key) %}
+                                            <button
+                                                type="button"
+                                                class="seat {{ cell == 'accessible' ? 'accessible' }} {{ occupant is null ? 'is-empty' }}"
+                                                data-room="{{ room.id }}"
+                                                data-seat-key="{{ seat_key }}"
+                                            >
+                                                <span class="seat-code">{{ row_label }} - {{ col_label }}</span>
+                                                <span class="seat-name">{{ occupant is null ? '' : occupant.display_name }}</span>
+                                            </button>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="desk-label">BUREAU</div>
+                    </div>
+
+                    <div class="legend">
+                        <span><i class="sample-seat"></i>Place standard</span>
+                        <span><i class="sample-accessible"></i>Place PMR</span>
+                        <span><i class="sample-empty"></i>Place libre</span>
+                        <span><i class="sample-selected"></i>Zone de dépôt</span>
+                    </div>
+                </article>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            Le placement n’a pas encore été généré. Revenir à l’étape 1 pour ajouter des étudiants.
+        </div>
+    {% endif %}
+
+    <div class="stage-footer between">
+        <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_setup"> <-- Retour à l’étape précédente</button></form>
+        <div class="stage-footer-center">
+            {% for room in placements.rooms %}
+                <form method="post" class="room-reroll-footer {{ loop.first ? 'active' }}" data-room-reroll="{{ room.id }}">
+                    <button class="btn secondary compact" type="submit" name="action" value="reroll_placements">Relancer le placement aléatoire</button>
+                </form>
+            {% endfor %}
+        </div>
+        <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_exports"> --> Passer à l'étape suivante</button></form>
+    </div>
+</section>

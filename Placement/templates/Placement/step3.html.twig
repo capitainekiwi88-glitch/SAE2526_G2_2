@@ -1,0 +1,38 @@
+<section class="stage-panel">
+    <div class="section-head">
+        <div>
+            <h2>Étape 3 : conversion PDF</h2>
+        </div>
+        <div class="toolbar" style="margin-top:0;">
+            <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_placement"> <-- Retour à l'étape précédente</button></form>
+        </div>
+    </div>
+
+    <div class="export-grid">
+        {% for room in placements.rooms %}
+            <article class="export-card">
+                <h3>{{ room.name }}</h3>
+                <div class="summary-line">
+                    <span>{{ room.student_count }} étudiant(s)</span>
+                    <span>{{ room.supervisor }}</span>
+                </div>
+                <div class="export-links">
+                    <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=room_list&room={{ room.id }}">Plan pour {{ room.name }}</a>
+                </div>
+            </article>
+        {% endfor %}
+
+        {% for promo in placements.promo_exports %}
+            <article class="export-card">
+                <h3>{{ promo.label }}</h3>
+                <div class="summary-line">
+                    <span>Export transversal</span>
+                    <span>Toutes salles confondues</span>
+                </div>
+                <div class="export-links">
+                    <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=promo_list&promo={{ promo.id }}">Plans pour toutes les salles</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
