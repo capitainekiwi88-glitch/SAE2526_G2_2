@@ -56,6 +56,8 @@
         .field { display: grid; gap: 8px; }
         .field.is-hidden { display: none; }
         .field label { font-size: .88rem; font-weight: 700; color: var(--text); }
+        .field-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+        .field-head .field-error { margin: 0; text-align: right; }
         .field input, .field select { width: 100%; min-width: 0; min-height: 44px; border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: var(--surface-soft); color: var(--text); font: inherit; }
         .field select {
             appearance: none;
@@ -222,12 +224,14 @@
                 </div>
 
                 <div class="setup-layout">
-                    <form method="post" class="panel" id="placementSetupForm">
+                    <form method="post" class="panel" id="placementSetupForm" novalidate>
                         <div class="form-grid">
                             <div class="field field-date">
-                                <label for="date_exam">Date du devoir</label>
+                                <div class="field-head">
+                                    <label for="date_exam">Date du devoir</label>
+                                    <div class="field-error" id="date-error-message" {% if not date_error %}style="display:none;"{% endif %}>{{ date_error }}</div>
+                                </div>
                                 <input type="date" id="date_exam" name="date_exam" value="{{ exam.date }}" min="{{ today_iso }}">
-                                <div class="field-error" id="date-error-message" {% if not date_error %}style="display:none;"{% endif %}>{{ date_error }}</div>
                             </div>
                             <div class="field field-start">
                                 <label>Heure de début</label>
@@ -515,6 +519,7 @@
             const addCombinationButton = document.getElementById('add-combination-btn');
             const formErrorMessage = document.getElementById('form-error-message');
             const dateErrorMessage = document.getElementById('date-error-message');
+            const dateExamInput = document.getElementById('date_exam');
             const placementSetupForm = document.getElementById('placementSetupForm');
             const combinationSummary = document.getElementById('combination-summary');
             const generatePlacementsButton = document.getElementById('generate-placements-btn');
@@ -610,11 +615,12 @@
                     && matiereSelect.value !== ''
                     && !!salleSelect
                     && salleSelect.value !== '';
+                const isDateValid = validateExamDate();
                 const errorMessage = evaluateCombinationError();
                 renderFormError(errorMessage);
                 const hasBlockingError = errorMessage !== '';
 
-                addCombinationButton.disabled = !canAdd || hasBlockingError;
+                addCombinationButton.disabled = !canAdd || hasBlockingError || !isDateValid;
             }
 
             function renderFormError(message) {
@@ -627,6 +633,31 @@
                 if (!dateErrorMessage) return;
                 dateErrorMessage.textContent = message;
                 dateErrorMessage.style.display = message ? 'block' : 'none';
+            }
+
+            function validateExamDate() {
+                if (!dateExamInput) return true;
+                if (!dateExamInput.value) {
+                    renderDateError('');
+                    return true;
+                }
+
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(dateExamInput.value)) {
+                    renderDateError('');
+                    return true;
+                }
+
+                const selectedDate = new Date(`${dateExamInput.value}T00:00:00`);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (selectedDate < today) {
+                    renderDateError('Date antérieure à aujourd’hui');
+                    return false;
+                }
+
+                renderDateError('');
+                return true;
             }
 
             function getStudentCount(promoId, groupId) {
@@ -754,6 +785,18 @@
                 salleSelect.addEventListener('change', updateAddButtonState);
             }
 
+            if (dateExamInput) {
+                dateExamInput.addEventListener('change', () => {
+                    validateExamDate();
+                    updateAddButtonState();
+                });
+                dateExamInput.addEventListener('input', () => {
+                    if (dateExamInput.value === '') {
+                        renderDateError('');
+                    }
+                });
+            }
+
             const tabs = Array.from(document.querySelectorAll('[data-room-tab]'));
             const panels = Array.from(document.querySelectorAll('[data-room-panel]'));
             const rerollForms = Array.from(document.querySelectorAll('.room-reroll-footer'));
@@ -792,6 +835,11 @@
                     }
 
                     event.preventDefault();
+
+                    if (!validateExamDate()) {
+                        updateAddButtonState();
+                        return;
+                    }
 
                     const formData = new FormData(placementSetupForm);
 
