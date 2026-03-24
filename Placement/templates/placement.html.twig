@@ -57,6 +57,16 @@
         .field.is-hidden { display: none; }
         .field label { font-size: .88rem; font-weight: 700; color: var(--text); }
         .field input, .field select { width: 100%; min-width: 0; min-height: 44px; border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: var(--surface-soft); color: var(--text); font: inherit; }
+        .field select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            padding-right: 42px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%2316324f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px 14px;
+        }
         .field-error { font-size: .82rem; color: #dc2626; font-weight: 600; }
         .field-hint { font-size: .82rem; color: var(--muted); }
         .subgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -69,7 +79,7 @@
         .field-group { grid-column: span 4; }
         .field-matiere { grid-column: span 4; }
         .field-salle { grid-column: span 4; }
-        .field-actions { grid-column: 1 / -1; align-self: stretch; }
+        .field-actions { grid-column: 1 / -1; align-self: start; }
         .combo-table { width: 100%; border-collapse: collapse; }
         .combo-table th, .combo-table td { padding: 14px 10px; border-bottom: 1px solid #e7eef5; text-align: left; vertical-align: middle; }
         .combo-table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
@@ -78,7 +88,9 @@
         .badge.neutral { background: #e2e8f0; color: #334155; }
         .badge.success { background: #dcfce7; color: #166534; }
         .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
-        .field-actions .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-top: 0; }
+        .field-actions-row { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 0; }
+        .field-actions .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-top: 0; flex-shrink: 0; }
+        .field-actions .field-error { margin: 0 auto 0 0; text-align: left; }
         .stage-footer { display: flex; justify-content: flex-end; margin-top: 18px; }
         .stage-footer.between { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
         .stage-footer.between form:last-child { justify-self: end; }
@@ -215,9 +227,7 @@
                             <div class="field field-date">
                                 <label for="date_exam">Date du devoir</label>
                                 <input type="date" id="date_exam" name="date_exam" value="{{ exam.date }}" min="{{ today_iso }}">
-                                {% if date_error %}
-                                    <div class="field-error">{{ date_error }}</div>
-                                {% endif %}
+                                <div class="field-error" id="date-error-message" {% if not date_error %}style="display:none;"{% endif %}>{{ date_error }}</div>
                             </div>
                             <div class="field field-start">
                                 <label>Heure de début</label>
@@ -288,8 +298,11 @@
                                 </select>
                             </div>
                             <div class="field field-actions">
-                                <div class="toolbar" style="margin-top:0;">
-                                    <button class="btn primary" id="add-combination-btn" type="submit" name="action" value="add_combination" disabled>+ Ajouter</button>
+                                <div class="field-actions-row">
+                                    <div class="field-error" id="form-error-message" {% if not form_error %}style="display:none;"{% endif %}>{{ form_error }}</div>
+                                    <div class="toolbar" style="margin-top:0;">
+                                        <button class="btn primary" id="add-combination-btn" type="submit" name="action" value="add_combination" disabled>+ Ajouter</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -302,6 +315,7 @@
                             </div>
                         </div>
 
+                        <div id="combination-summary">
                         {% if combinations %}
                             <table class="combo-table">
                                 <thead>
@@ -325,7 +339,7 @@
                                             <td>{{ combination.free_seats }} / {{ combination.total_seats }}</td>
                                             <td><span class="badge success">{{ combination.salle_label }}</span></td>
                                             <td style="text-align:right;">
-                                                <form method="post">
+                                                <form method="post" class="remove-combination-form">
                                                     <input type="hidden" name="combination_id" value="{{ combination.id }}">
                                                     <button class="btn-icon" type="submit" name="action" value="remove_combination" title="Retirer">
                                                         <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -343,11 +357,12 @@
                                 Aucun étudiants n'a été ajouté.
                             </div>
                         {% endif %}
+                        </div>
                     </div>
                 </div>
 
                 <div class="stage-footer">
-                    <button class="btn primary" type="submit" name="action" value="generate_placements" form="placementSetupForm" {{ combinations is empty ? 'disabled' }}> --> Passer à l'étape suivante</button>
+                    <button class="btn primary" id="generate-placements-btn" type="submit" name="action" value="generate_placements" form="placementSetupForm" {{ combinations is empty ? 'disabled' }}> --> Passer à l'étape suivante</button>
                 </div>
             </section>
         {% endif %}
@@ -487,6 +502,9 @@
 
     <script>
         (function () {
+            let existingCombinations = {{ combinations|json_encode|raw }};
+            const studentCounts = {{ student_counts|json_encode|raw }};
+            const sallesData = {{ salles|json_encode|raw }};
             const promoSelect = document.getElementById('promo_id');
             const groupSelect = document.getElementById('group_id');
             const matiereSelect = document.getElementById('matiere_id');
@@ -495,6 +513,70 @@
             const fieldMatiere = document.getElementById('field-matiere');
             const fieldSalle = document.getElementById('field-salle');
             const addCombinationButton = document.getElementById('add-combination-btn');
+            const formErrorMessage = document.getElementById('form-error-message');
+            const dateErrorMessage = document.getElementById('date-error-message');
+            const placementSetupForm = document.getElementById('placementSetupForm');
+            const combinationSummary = document.getElementById('combination-summary');
+            const generatePlacementsButton = document.getElementById('generate-placements-btn');
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function updateCombinationSummary(combinations) {
+                if (!combinationSummary) return;
+
+                if (!combinations.length) {
+                    combinationSummary.innerHTML = '<div class="empty-state">Aucun étudiants n\\\'a été ajouté.</div>';
+                    if (generatePlacementsButton) generatePlacementsButton.disabled = true;
+                    return;
+                }
+
+                const rows = combinations.map((combination) => `
+                    <tr>
+                        <td><span class="badge primary">${escapeHtml(combination.promo_label)}</span></td>
+                        <td><span class="badge neutral">${escapeHtml(combination.group_label)}</span></td>
+                        <td>${escapeHtml(combination.matiere_label)}</td>
+                        <td>${escapeHtml(combination.student_count)}</td>
+                        <td>${escapeHtml(combination.free_seats)} / ${escapeHtml(combination.total_seats)}</td>
+                        <td><span class="badge success">${escapeHtml(combination.salle_label)}</span></td>
+                        <td style="text-align:right;">
+                            <form method="post" class="remove-combination-form">
+                                <input type="hidden" name="combination_id" value="${escapeHtml(combination.id)}">
+                                <button class="btn-icon" type="submit" name="action" value="remove_combination" title="Retirer">
+                                    <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                `).join('');
+
+                combinationSummary.innerHTML = `
+                    <table class="combo-table">
+                        <thead>
+                            <tr>
+                                <th>Promotion</th>
+                                <th>Groupe</th>
+                                <th>Matière</th>
+                                <th>Étudiants</th>
+                                <th>Places libres</th>
+                                <th>Salle</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+
+                if (generatePlacementsButton) generatePlacementsButton.disabled = false;
+            }
 
             function filterSelect(select, promoId, keepAllOption) {
                 if (!select) return;
@@ -522,12 +604,107 @@
 
                 const canAdd = !!promoSelect
                     && promoSelect.value !== ''
+                    && !!groupSelect
+                    && groupSelect.value !== '0'
                     && !!matiereSelect
                     && matiereSelect.value !== ''
                     && !!salleSelect
                     && salleSelect.value !== '';
+                const errorMessage = evaluateCombinationError();
+                renderFormError(errorMessage);
+                const hasBlockingError = errorMessage !== '';
 
-                addCombinationButton.disabled = !canAdd;
+                addCombinationButton.disabled = !canAdd || hasBlockingError;
+            }
+
+            function renderFormError(message) {
+                if (!formErrorMessage) return;
+                formErrorMessage.textContent = message;
+                formErrorMessage.style.display = message ? 'block' : 'none';
+            }
+
+            function renderDateError(message) {
+                if (!dateErrorMessage) return;
+                dateErrorMessage.textContent = message;
+                dateErrorMessage.style.display = message ? 'block' : 'none';
+            }
+
+            function getStudentCount(promoId, groupId) {
+                if (!studentCounts || !studentCounts[promoId] || typeof studentCounts[promoId][groupId] === 'undefined') {
+                    return 0;
+                }
+                return Number(studentCounts[promoId][groupId]);
+            }
+
+            function getSalleCapacity(salleId) {
+                const salle = sallesData.find((item) => Number(item.id) === Number(salleId));
+                return Number(salle && typeof salle.capacite !== 'undefined' ? salle.capacite : 0);
+            }
+
+            function exceedsDistinctLimit(key, currentId, maxDistinct) {
+                const ids = [];
+                existingCombinations.forEach((combination) => {
+                    const value = Number(combination[key] ?? 0);
+                    if (value > 0 && !ids.includes(value)) {
+                        ids.push(value);
+                    }
+                });
+
+                if (ids.length < maxDistinct) {
+                    return false;
+                }
+
+                return !ids.includes(Number(currentId));
+            }
+
+            function hasDuplicateStudents(promoId, groupId) {
+                return existingCombinations.some((combination) => {
+                    if (Number(combination.promo_id) !== Number(promoId)) {
+                        return false;
+                    }
+
+                    const existingGroupId = Number(combination.group_id);
+                    return Number(groupId) === 0 || existingGroupId === 0 || existingGroupId === Number(groupId);
+                });
+            }
+
+            function roomOverCapacity(salleId, promoId, groupId) {
+                const currentCount = getStudentCount(Number(promoId), Number(groupId));
+                const usedSeats = existingCombinations.reduce((total, combination) => {
+                    return Number(combination.salle_id) === Number(salleId)
+                        ? total + Number(combination.student_count ?? 0)
+                        : total;
+                }, currentCount);
+
+                return usedSeats > getSalleCapacity(salleId);
+            }
+
+            function evaluateCombinationError() {
+                if (!promoSelect || !groupSelect || !matiereSelect || !salleSelect) return '';
+                if (promoSelect.value === '' || groupSelect.value === '0' || matiereSelect.value === '' || salleSelect.value === '') return '';
+
+                const promoId = Number(promoSelect.value);
+                const groupId = Number(groupSelect ? groupSelect.value || '0' : '0');
+                const matiereId = Number(matiereSelect.value);
+                const salleId = Number(salleSelect.value);
+
+                if (exceedsDistinctLimit('matiere_id', matiereId, 2)) {
+                    return 'Le nombre maximum de matière est atteint';
+                }
+
+                if (exceedsDistinctLimit('salle_id', salleId, 2)) {
+                    return 'Le nombre maximum de salle est atteint';
+                }
+
+                if (hasDuplicateStudents(promoId, groupId)) {
+                    return 'Impossible de placer les mêmes élèves plusieurs fois ou à des endroits différents';
+                }
+
+                if (roomOverCapacity(salleId, promoId, groupId)) {
+                    return 'Le nombre de place disponible dans cette salle est insuffisant';
+                }
+
+                return '';
             }
 
             function syncPlacementFilters(resetDependentFields = false) {
@@ -559,7 +736,9 @@
             }
 
             if (promoSelect) {
-                promoSelect.addEventListener('change', () => syncPlacementFilters(true));
+                promoSelect.addEventListener('change', () => {
+                    syncPlacementFilters(true);
+                });
                 syncPlacementFilters(false);
             }
 
@@ -594,12 +773,73 @@
 
             document.querySelectorAll('form').forEach((form) => {
                 form.addEventListener('submit', () => {
+                    if (form === placementSetupForm || form.classList.contains('remove-combination-form')) {
+                        return;
+                    }
                     if (form.classList.contains('room-reroll-footer')) {
                         sessionStorage.setItem('placementScrollY', String(window.scrollY));
                         return;
                     }
                     showLoadingOverlay();
                 });
+            });
+
+            if (placementSetupForm) {
+                placementSetupForm.addEventListener('submit', async (event) => {
+                    const submitter = event.submitter;
+                    if (!submitter || submitter.value !== 'add_combination') {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    const formData = new FormData(placementSetupForm);
+
+                    try {
+                        const response = await fetch('index.php?p=placement_add_combination', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+
+                        renderDateError(data.date_error || '');
+                        renderFormError(data.form_error || '');
+
+                        existingCombinations = data.combinations || [];
+                        updateCombinationSummary(existingCombinations);
+
+                        if (data.ok && groupSelect) {
+                            groupSelect.value = data.form && typeof data.form.group_id !== 'undefined' ? data.form.group_id : '0';
+                        }
+
+                        updateAddButtonState();
+                    } catch (error) {
+                        renderFormError('Une erreur est survenue lors de l\'ajout.');
+                    }
+                });
+            }
+
+            document.addEventListener('submit', async (event) => {
+                const form = event.target;
+                if (!(form instanceof HTMLFormElement) || !form.classList.contains('remove-combination-form')) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                try {
+                    const response = await fetch('index.php?p=placement_remove_combination', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    });
+                    const data = await response.json();
+
+                    existingCombinations = data.combinations || [];
+                    updateCombinationSummary(existingCombinations);
+                    updateAddButtonState();
+                } catch (error) {
+                    renderFormError('Une erreur est survenue lors de la suppression.');
+                }
             });
 
             tabs.forEach((tab) => {

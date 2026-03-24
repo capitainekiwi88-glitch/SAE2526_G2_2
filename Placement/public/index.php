@@ -21,7 +21,7 @@ function placementBaseData(): array
             ['id' => 5, 'promo_id' => 2, 'label' => 'Groupe 1'],
             ['id' => 6, 'promo_id' => 2, 'label' => 'Groupe 2'],
             ['id' => 7, 'promo_id' => 2, 'label' => 'Groupe 3'],
-            ['id' => 8, 'promo_id' => 3, 'label' => 'Groupe 4'],
+            ['id' => 8, 'promo_id' => 3, 'label' => 'Groupe 1'],
             ['id' => 9, 'promo_id' => 4, 'label' => 'Groupe 1'],
             ['id' => 10, 'promo_id' => 4, 'label' => 'Groupe 2'],
             ['id' => 11, 'promo_id' => 4, 'label' => 'Groupe 3'],
@@ -100,8 +100,25 @@ function placementDefaultState(): array
             'promo_exports' => [],
         ],
         'date_error' => '',
+        'form_error' => '',
         'next_combination_id' => 1,
     ];
+}
+
+function placementResetSetupForm(array &$state): void
+{
+    $defaultState = placementDefaultState();
+    $state['exam'] = $defaultState['exam'];
+    $state['form'] = $defaultState['form'];
+    $state['date_error'] = '';
+    $state['form_error'] = '';
+}
+
+function placementResetCombinationForm(array &$state): void
+{
+    $state['form']['group_id'] = '0';
+    $state['date_error'] = '';
+    $state['form_error'] = '';
 }
 
 function &placementState(): array
@@ -283,6 +300,156 @@ function placementCombinationsForView(array $combinations, array $salles): array
     return $view;
 }
 
+function placementHasDuplicateStudents(array $combinations, int $promoId, int $groupId): bool
+{
+    foreach ($combinations as $combination) {
+        if ((int) $combination['promo_id'] !== $promoId) {
+            continue;
+        }
+
+        $existingGroupId = (int) $combination['group_id'];
+        if ($groupId === 0 || $existingGroupId === 0 || $existingGroupId === $groupId) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function placementExceedsDistinctLimit(array $combinations, string $key, int $currentId, int $maxDistinct): bool
+{
+    $ids = [];
+    foreach ($combinations as $combination) {
+        $value = (int) ($combination[$key] ?? 0);
+        if ($value > 0 && !in_array($value, $ids, true)) {
+            $ids[] = $value;
+        }
+    }
+
+    if (count($ids) < $maxDistinct) {
+        return false;
+    }
+
+    return !in_array($currentId, $ids, true);
+}
+
+function placementRoomOverCapacity(array $combinations, array $salles, int $salleId, int $studentCount): bool
+{
+    $salle = placementFindById($salles, $salleId);
+    $capacity = (int) ($salle['capacite'] ?? 0);
+    $usedSeats = $studentCount;
+
+    foreach ($combinations as $combination) {
+        if ((int) $combination['salle_id'] === $salleId) {
+            $usedSeats += (int) ($combination['student_count'] ?? 0);
+        }
+    }
+
+    return $usedSeats > $capacity;
+}
+
+function placementCombinationError(array $combinations, array $salles, int $promoId, int $groupId, int $matiereId, int $salleId): string
+{
+    if (placementExceedsDistinctLimit($combinations, 'matiere_id', $matiereId, 2)) {
+        return 'Le nombre maximum de matière est atteint !';
+    }
+
+    if (placementExceedsDistinctLimit($combinations, 'salle_id', $salleId, 2)) {
+        return 'Le nombre maximum de salle est atteint !';
+    }
+
+    if (placementHasDuplicateStudents($combinations, $promoId, $groupId)) {
+        return 'Vous essayez de placer les mêmes élèves plusieurs fois ou à des endroits différents !';
+    }
+
+    if (placementRoomOverCapacity($combinations, $salles, $salleId, placementStudentCount($promoId, $groupId))) {
+        return 'Il n\'y a pas assez de place disponible dans cette salle.';
+    }
+
+    return '';
+}
+
+function placementStudentCountMap(array $promotions, array $groupes): array
+{
+    $counts = [];
+
+    foreach ($promotions as $promotion) {
+        $promoId = (int) $promotion['id'];
+        $counts[$promoId] = [
+            0 => placementStudentCount($promoId, 0),
+        ];
+    }
+
+    foreach ($groupes as $groupe) {
+        $promoId = (int) $groupe['promo_id'];
+        $groupId = (int) $groupe['id'];
+        $counts[$promoId][$groupId] = placementStudentCount($promoId, $groupId);
+    }
+
+    return $counts;
+}
+
+function placementAddCombination(array &$state, array $data): void
+{
+    $state['date_error'] = placementDateError($state['exam']['date']);
+    $state['form_error'] = '';
+
+    if ($state['date_error'] !== '') {
+        return;
+    }
+
+    $promoId = (int) ($state['form']['promo_id'] !== '' ? $state['form']['promo_id'] : 0);
+    $groupId = (int) ($state['form']['group_id'] !== '' ? $state['form']['group_id'] : 0);
+    $matiereId = (int) ($state['form']['matiere_id'] !== '' ? $state['form']['matiere_id'] : 0);
+    $salleId = (int) ($state['form']['salle_id'] !== '' ? $state['form']['salle_id'] : 0);
+
+    $promo = placementFindById($data['promotions'], $promoId);
+    $matiere = placementFindById($data['matieres'], $matiereId);
+    $salle = placementFindById($data['salles'], $salleId);
+    $groupe = $groupId === 0 ? null : placementFindById($data['groupes'], $groupId);
+
+    if ($promo === null || $matiere === null || $salle === null) {
+        $state['form_error'] = 'La combinaison sélectionnée est invalide.';
+        return;
+    }
+
+    $state['form_error'] = placementCombinationError(
+        $state['combinations'],
+        $data['salles'],
+        $promoId,
+        $groupId,
+        $matiereId,
+        $salleId
+    );
+
+    if ($state['form_error'] !== '') {
+        return;
+    }
+
+    $state['combinations'][] = [
+        'id' => $state['next_combination_id']++,
+        'promo_id' => $promoId,
+        'group_id' => $groupId,
+        'matiere_id' => $matiereId,
+        'salle_id' => $salleId,
+        'promo_label' => $promo['label'],
+        'group_label' => $groupe['label'] ?? 'Toute la promotion',
+        'matiere_label' => $matiere['nom'],
+        'salle_label' => $salle['nom'],
+        'student_count' => placementStudentCount($promoId, $groupId),
+    ];
+
+    placementResetCombinationForm($state);
+}
+
+function placementRemoveCombination(array &$state, int $removeId): void
+{
+    $state['combinations'] = array_values(array_filter(
+        $state['combinations'],
+        static fn(array $combination): bool => (int) $combination['id'] !== $removeId
+    ));
+}
+
 function placementBuildPlacements(array $combinations, array $salles): array
 {
     $rooms = [];
@@ -424,6 +591,46 @@ $page = $_GET['p'] ?? 'home';
 
 //j'ai mit un jeu de donnée temporaire pour tester l'affichage.
 switch ($page) {
+    case 'placement_add_combination':
+        header('Content-Type: application/json; charset=utf-8');
+        $data = placementBaseData();
+        $state = &placementState();
+        $state['exam'] = [
+            'date' => $_POST['date_exam'] ?? '',
+            'start_hour' => $_POST['start_hour'] ?? '08',
+            'start_minute' => $_POST['start_minute'] ?? '00',
+            'duration_hour' => $_POST['duration_hour'] ?? '02',
+            'duration_minute' => $_POST['duration_minute'] ?? '00',
+        ];
+        $state['form'] = [
+            'promo_id' => (string) ($_POST['promo_id'] ?? ''),
+            'group_id' => (string) ($_POST['group_id'] ?? '0'),
+            'matiere_id' => (string) ($_POST['matiere_id'] ?? ''),
+            'salle_id' => (string) ($_POST['salle_id'] ?? ''),
+        ];
+
+        placementAddCombination($state, $data);
+
+        echo json_encode([
+            'ok' => $state['date_error'] === '' && $state['form_error'] === '',
+            'date_error' => $state['date_error'],
+            'form_error' => $state['form_error'],
+            'form' => $state['form'],
+            'combinations' => placementCombinationsForView($state['combinations'], $data['salles']),
+        ]);
+        exit;
+
+    case 'placement_remove_combination':
+        header('Content-Type: application/json; charset=utf-8');
+        $data = placementBaseData();
+        $state = &placementState();
+        placementRemoveCombination($state, (int) ($_POST['combination_id'] ?? 0));
+        echo json_encode([
+            'ok' => true,
+            'combinations' => placementCombinationsForView($state['combinations'], $data['salles']),
+        ]);
+        exit;
+
     case 'placement_swap':
         header('Content-Type: application/json; charset=utf-8');
         $state = &placementState();
@@ -440,6 +647,9 @@ switch ($page) {
     case 'util_placement':
         $data = placementBaseData();
         $state = &placementState();
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' && (int) ($state['current_stage'] ?? 1) === 1) {
+            placementResetSetupForm($state);
+        }
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $state['exam'] = [
@@ -456,6 +666,7 @@ switch ($page) {
                 'salle_id' => (string) ($_POST['salle_id'] ?? ''),
             ];
             $state['date_error'] = '';
+            $state['form_error'] = '';
             $action = $_POST['action'] ?? '';
 
             if (in_array($action, ['add_combination', 'generate_placements'], true)) {
@@ -463,37 +674,11 @@ switch ($page) {
             }
 
             if ($action === 'add_combination' && $state['date_error'] === '') {
-                $promoId = (int) ($state['form']['promo_id'] !== '' ? $state['form']['promo_id'] : 0);
-                $groupId = (int) ($state['form']['group_id'] !== '' ? $state['form']['group_id'] : 0);
-                $matiereId = (int) ($state['form']['matiere_id'] !== '' ? $state['form']['matiere_id'] : 0);
-                $salleId = (int) ($state['form']['salle_id'] !== '' ? $state['form']['salle_id'] : 0);
-
-                $promo = placementFindById($data['promotions'], $promoId);
-                $matiere = placementFindById($data['matieres'], $matiereId);
-                $salle = placementFindById($data['salles'], $salleId);
-                $groupe = $groupId === 0 ? null : placementFindById($data['groupes'], $groupId);
-
-                if ($promo !== null && $matiere !== null && $salle !== null) {
-                    $state['combinations'][] = [
-                        'id' => $state['next_combination_id']++,
-                        'promo_id' => $promoId,
-                        'group_id' => $groupId,
-                        'salle_id' => $salleId,
-                        'promo_label' => $promo['label'],
-                        'group_label' => $groupe['label'] ?? 'Toute la promotion',
-                        'matiere_label' => $matiere['nom'],
-                        'salle_label' => $salle['nom'],
-                        'student_count' => placementStudentCount($promoId, $groupId),
-                    ];
-                }
+                placementAddCombination($state, $data);
             }
 
             if ($action === 'remove_combination') {
-                $removeId = (int) ($_POST['combination_id'] ?? 0);
-                $state['combinations'] = array_values(array_filter(
-                    $state['combinations'],
-                    static fn(array $combination): bool => (int) $combination['id'] !== $removeId
-                ));
+                placementRemoveCombination($state, (int) ($_POST['combination_id'] ?? 0));
             }
 
             if ($action === 'generate_placements' && $state['date_error'] === '' && !empty($state['combinations'])) {
@@ -525,11 +710,13 @@ switch ($page) {
             'exam' => $state['exam'],
             'form' => $state['form'],
             'date_error' => $state['date_error'],
+            'form_error' => $state['form_error'],
             'today_iso' => date('Y-m-d'),
             'promotions' => $data['promotions'],
             'groupes' => $data['groupes'],
             'matieres' => $data['matieres'],
             'salles' => $data['salles'],
+            'student_counts' => placementStudentCountMap($data['promotions'], $data['groupes']),
             'combinations' => placementCombinationsForView($state['combinations'], $data['salles']),
             'placements' => $state['placements'],
         ]);
