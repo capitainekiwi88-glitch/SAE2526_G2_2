@@ -27,36 +27,36 @@ class PlanDAO {
         $res = $this->_db->query("SELECT * FROM plan");
 
         while ($data = $res->fetch(PDO::FETCH_ASSOC)) {
-            $list[] = new Departement(
-                $data['id_dpt'],
-                $data['nom_dpt'],
+            $list[] = new Plan(
+                $data['id_plan'],
+                $data['donnee'],
             );
         }
         return $list;
     }
 
-    public function insert(Departement $d): bool {
-        $stmt = $this->_db->prepare("INSERT INTO departement (nom_dpt) VALUES (:nom)");
+    public function insert(Plan $p): bool {
+        $stmt = $this->_db->prepare("INSERT INTO plan (donnee) VALUES (:donnee)");
         $res = $stmt->execute([
-            ':nom' => $d->getNom()
+            ':donnee' => $p->getDonnee()
         ]);
 
         if ($res) {
-            $d->setIdDpt((int)$this->_db->lastInsertId());
+            $p->setIdPlan((int)$this->_db->lastInsertId());
         }
         return $res;
     }
 
-    public function delete(Departement $d): bool {
-        $stmt = $this->_db->prepare("DELETE FROM departement WHERE id_dpt = :id");
-        return $stmt->execute([':id' => $d->getIdDpt()]);
+    public function delete(Plan $p): bool {
+        $stmt = $this->_db->prepare("DELETE FROM plan WHERE id_plan = :id");
+        return $stmt->execute([':id' => $p->getIdPlan()]);
     }
 
-    public function update(Departement $d): bool {
-        $stmt = $this->_db->prepare("UPDATE departement SET nom_dpt = :nom WHERE id_dpt = :id");
+    public function update(Plan $p): bool {
+        $stmt = $this->_db->prepare("UPDATE plan SET donnee = :donnee WHERE id_plan = :id");
         return $stmt->execute([
-            ':nom' => $d->getNom(),
-            ':id'  => $d->getIdDpt()
+            ':donnee' => $p->getDonnee(),
+            ':id'     => $p->getIdPlan()
         ]);
     }
 
