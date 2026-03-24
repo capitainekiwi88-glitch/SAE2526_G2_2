@@ -228,14 +228,24 @@ function placementStudentFixtures(): array
     ];
 }
 
+function placementStudentRecord(int $promoId, int $groupId, int $index, string $nom, string $prenom): array
+{
+    return [
+        'id' => sprintf('%d-%d-%d', $promoId, $groupId, $index),
+        'promo_id' => $promoId,
+        'group_id' => $groupId,
+        'last_name' => $nom,
+        'first_name' => $prenom,
+        'display_name' => $nom . ' ' . $prenom,
+    ];
+}
+
 function placementGeneratedStudents(int $promoId, int $groupId): array
 {
     $count = $groupId === 0 ? 16 : 8;
     $students = [];
     for ($i = 1; $i <= $count; $i++) {
-        $students[] = [
-            'display_name' => 'Etudiant ' . $promoId . '-' . $groupId . '-' . $i,
-        ];
+        $students[] = placementStudentRecord($promoId, $groupId, $i, 'Etudiant', $promoId . '-' . $groupId . '-' . $i);
     }
 
     return $students;
@@ -247,9 +257,9 @@ function placementStudentsForSelection(int $promoId, int $groupId): array
 
     if ($groupId === 0) {
         $students = [];
-        foreach ($fixtures[$promoId] ?? [] as $groupStudents) {
-            foreach ($groupStudents as [$nom, $prenom]) {
-                $students[] = ['display_name' => $nom . ' ' . $prenom];
+        foreach (($fixtures[$promoId] ?? []) as $fixtureGroupId => $groupStudents) {
+            foreach ($groupStudents as $index => [$nom, $prenom]) {
+                $students[] = placementStudentRecord($promoId, (int) $fixtureGroupId, $index + 1, $nom, $prenom);
             }
         }
 
@@ -260,12 +270,35 @@ function placementStudentsForSelection(int $promoId, int $groupId): array
 
     if (isset($fixtures[$promoId][$groupId])) {
         return array_map(
-            static fn(array $student): array => ['display_name' => $student[0] . ' ' . $student[1]],
-            $fixtures[$promoId][$groupId]
+            static fn(array $student, int $index): array => placementStudentRecord($promoId, $groupId, $index + 1, $student[0], $student[1]),
+            $fixtures[$promoId][$groupId],
+            array_keys($fixtures[$promoId][$groupId])
         );
     }
 
     return placementGeneratedStudents($promoId, $groupId);
+}
+
+function placementStudentsForPromotion(int $promoId): array
+{
+    $fixtures = placementStudentFixtures();
+
+    if (!isset($fixtures[$promoId])) {
+        return [];
+    }
+
+    $students = [];
+    foreach ($fixtures[$promoId] as $groupId => $groupStudents) {
+        foreach ($groupStudents as $index => [$nom, $prenom]) {
+            $students[] = placementStudentRecord($promoId, (int) $groupId, $index + 1, $nom, $prenom);
+        }
+    }
+
+    usort($students, static function (array $a, array $b): int {
+        return strcmp($a['display_name'], $b['display_name']);
+    });
+
+    return $students;
 }
 
 function placementStudentCount(int $promoId, int $groupId): int
@@ -450,6 +483,22 @@ function placementRemoveCombination(array &$state, int $removeId): void
     ));
 }
 
+function placementSortedSeatKeys(array $assignments): array
+{
+    $seatKeys = array_keys($assignments);
+    usort($seatKeys, static function (string $a, string $b): int {
+        [$rowA, $colA] = array_map('intval', explode('-', $a));
+        [$rowB, $colB] = array_map('intval', explode('-', $b));
+        if ($rowA !== $rowB) {
+            return $rowB <=> $rowA;
+        }
+
+        return $colA <=> $colB;
+    });
+
+    return $seatKeys;
+}
+
 function placementBuildPlacements(array $combinations, array $salles): array
 {
     $rooms = [];
@@ -505,27 +554,26 @@ function placementBuildPlacements(array $combinations, array $salles): array
                 'layout' => $layout,
                 'seat_meta' => $seatMeta,
                 'assignments' => $assignments,
+                'promo_ids' => [],
+                'selected_student_ids' => [],
+                'available_students' => [],
             ];
         }
 
         $rooms[$roomId]['combination_labels'][] = $combination['matiere_label'];
+        $rooms[$roomId]['promo_ids'][(int) $combination['promo_id']] = true;
         $promoExports[$combination['promo_id']] = [
             'id' => $combination['promo_id'],
             'label' => $combination['promo_label'],
         ];
 
         $students = placementStudentsForSelection((int) $combination['promo_id'], (int) $combination['group_id']);
+        foreach ($students as $student) {
+            $rooms[$roomId]['selected_student_ids'][$student['id']] = true;
+        }
         shuffle($students);
 
-        $seatKeys = array_keys($rooms[$roomId]['assignments']);
-        usort($seatKeys, static function (string $a, string $b): int {
-            [$rowA, $colA] = array_map('intval', explode('-', $a));
-            [$rowB, $colB] = array_map('intval', explode('-', $b));
-            if ($rowA !== $rowB) {
-                return $rowB <=> $rowA;
-            }
-            return $colA <=> $colB;
-        });
+        $seatKeys = placementSortedSeatKeys($rooms[$roomId]['assignments']);
 
         foreach ($seatKeys as $seatKey) {
             if ($rooms[$roomId]['assignments'][$seatKey] === null && !empty($students)) {
@@ -537,6 +585,16 @@ function placementBuildPlacements(array $combinations, array $salles): array
 
     foreach ($rooms as &$room) {
         $room['combination_labels'] = array_values(array_unique($room['combination_labels']));
+        $availableStudents = [];
+        foreach (array_keys($room['promo_ids']) as $promoId) {
+            foreach (placementStudentsForPromotion((int) $promoId) as $student) {
+                if (!isset($room['selected_student_ids'][$student['id']])) {
+                    $availableStudents[] = $student;
+                }
+            }
+        }
+        $room['available_students'] = $availableStudents;
+        unset($room['promo_ids'], $room['selected_student_ids']);
     }
     unset($room);
 
@@ -544,6 +602,77 @@ function placementBuildPlacements(array $combinations, array $salles): array
         'rooms' => array_values($rooms),
         'promo_exports' => array_values($promoExports),
     ];
+}
+
+function placementAddStudentsToRoom(array &$state, int $roomId, array $studentIds): array
+{
+    foreach ($state['placements']['rooms'] as &$room) {
+        if ((int) $room['id'] !== $roomId) {
+            continue;
+        }
+
+        $requestedIds = array_values(array_unique(array_filter(array_map('strval', $studentIds))));
+        if (empty($requestedIds)) {
+            return ['ok' => false, 'message' => 'Aucun étudiant sélectionné.'];
+        }
+
+        $availableById = [];
+        foreach ($room['available_students'] ?? [] as $student) {
+            $availableById[$student['id']] = $student;
+        }
+
+        $studentsToAdd = [];
+        foreach ($requestedIds as $studentId) {
+            if (isset($availableById[$studentId])) {
+                $studentsToAdd[] = $availableById[$studentId];
+            }
+        }
+
+        if (empty($studentsToAdd)) {
+            return ['ok' => false, 'message' => 'Aucun étudiant disponible à ajouter.'];
+        }
+
+        $emptySeatKeys = array_values(array_filter(
+            placementSortedSeatKeys($room['assignments']),
+            static fn(string $seatKey): bool => $room['assignments'][$seatKey] === null
+        ));
+
+        if (count($studentsToAdd) > count($emptySeatKeys)) {
+            return ['ok' => false, 'message' => 'Il n’y a pas assez de places libres dans ce plan.'];
+        }
+
+        $updatedSeats = [];
+        foreach ($studentsToAdd as $index => $student) {
+            $seatKey = $emptySeatKeys[$index];
+            $room['assignments'][$seatKey] = $student;
+            $room['student_count']++;
+            $updatedSeats[] = [
+                'key' => $seatKey,
+                'name' => $student['display_name'],
+                'empty' => false,
+            ];
+            unset($availableById[$student['id']]);
+        }
+
+        $room['available_students'] = array_values($availableById);
+
+        return [
+            'ok' => true,
+            'room_id' => $roomId,
+            'student_count' => $room['student_count'],
+            'updated_seats' => $updatedSeats,
+            'available_students' => array_map(
+                static fn(array $student): array => [
+                    'id' => $student['id'],
+                    'display_name' => $student['display_name'],
+                ],
+                $room['available_students']
+            ),
+        ];
+    }
+    unset($room);
+
+    return ['ok' => false, 'message' => 'Salle introuvable.'];
 }
 
 function placementSwapSeats(array &$state, int $roomId, string $seatA, string $seatB): array
@@ -640,6 +769,18 @@ switch ($page) {
                 (int) ($_POST['room_id'] ?? 0),
                 (string) ($_POST['seat_a'] ?? ''),
                 (string) ($_POST['seat_b'] ?? '')
+            )
+        );
+        exit;
+
+    case 'placement_add_students':
+        header('Content-Type: application/json; charset=utf-8');
+        $state = &placementState();
+        echo json_encode(
+            placementAddStudentsToRoom(
+                $state,
+                (int) ($_POST['room_id'] ?? 0),
+                (array) ($_POST['student_ids'] ?? [])
             )
         );
         exit;

@@ -15,17 +15,48 @@
         {% for room in placements.rooms %}
             <div class="room-panel {{ loop.first ? 'active' }}" data-room-panel="{{ room.id }}">
                 <article class="room-card">
-                    <h3 style="margin:0; font-size:1.35rem;">{{ room.name }} · {{ room.building }}</h3>
-                    <div class="room-meta">
-                        <span class="badge primary">{{ room.student_count }} étudiant(s) placés</span>
-                        <span class="badge neutral">{{ room.capacity }} places exploitables</span>
-                        <span class="badge neutral">Surveillance : {{ room.supervisor }}</span>
-                    </div>
+                    <div class="room-head">
+                        <div class="room-head-content">
+                            <h3 style="margin:0; font-size:1.35rem;">{{ room.name }} · {{ room.building }}</h3>
+                            <div class="room-meta">
+                                <span class="badge primary room-student-count" data-room-student-count="{{ room.id }}">{{ room.student_count }} étudiant(s) placés</span>
+                                <span class="badge neutral">{{ room.capacity }} places exploitables</span>
+                                <span class="badge neutral">Surveillance : {{ room.supervisor }}</span>
+                            </div>
 
-                    <div class="summary-line">
-                        {% for label in room.combination_labels %}
-                            <span>{{ label }}</span>
-                        {% endfor %}
+                            <div class="summary-line">
+                                {% for label in room.combination_labels %}
+                                    <span>{{ label }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="room-head-actions">
+                            <button class="room-action-button wide" type="button" data-open-student-menu="{{ room.id }}" title="Ajouter des étudiants">+ Ajouter des étudiants</button>
+                            <button class="room-action-button danger" type="button" title="Action à venir">×</button>
+
+                            <div class="student-menu" data-student-menu="{{ room.id }}" aria-hidden="true">
+                                <form class="add-students-form" data-room-add-form="{{ room.id }}">
+                                    <input type="hidden" name="room_id" value="{{ room.id }}">
+                                    <div class="student-menu-list" data-student-menu-list="{{ room.id }}">
+                                        {% if room.available_students %}
+                                            {% for student in room.available_students %}
+                                                <label class="student-option">
+                                                    <input type="checkbox" name="student_ids[]" value="{{ student.id }}">
+                                                    <span>{{ student.display_name }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="empty-state compact">Tous les étudiants disponibles sont déjà ajoutés.</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="student-menu-actions">
+                                        <button class="btn secondary compact" type="button" data-close-student-menu="{{ room.id }}">Annuler</button>
+                                        <button class="btn primary compact" type="submit" data-add-students-submit="{{ room.id }}" disabled>+ Ajouter la séléction au plan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="room-grid">

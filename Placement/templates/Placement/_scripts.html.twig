@@ -295,6 +295,10 @@
         const panels = Array.from(document.querySelectorAll('[data-room-panel]'));
         const rerollForms = Array.from(document.querySelectorAll('.room-reroll-footer'));
         const loadingOverlay = document.getElementById('loading-overlay');
+        const studentMenuButtons = Array.from(document.querySelectorAll('[data-open-student-menu]'));
+        const studentMenus = Array.from(document.querySelectorAll('[data-student-menu]'));
+        const closeStudentMenuButtons = Array.from(document.querySelectorAll('[data-close-student-menu]'));
+        const addStudentsForms = Array.from(document.querySelectorAll('.add-students-form'));
 
         function showLoadingOverlay() {
             if (!loadingOverlay) return;
@@ -310,7 +314,7 @@
 
         document.querySelectorAll('form').forEach((form) => {
             form.addEventListener('submit', () => {
-                if (form === placementSetupForm || form.classList.contains('remove-combination-form')) {
+                if (form === placementSetupForm || form.classList.contains('remove-combination-form') || form.classList.contains('add-students-form')) {
                     return;
                 }
                 if (form.classList.contains('room-reroll-footer')) {
@@ -390,7 +394,136 @@
                 tabs.forEach((item) => item.classList.toggle('active', item === tab));
                 panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.roomPanel === roomId));
                 rerollForms.forEach((form) => form.classList.toggle('active', form.dataset.roomReroll === roomId));
+                closeAllStudentMenus();
             });
+        });
+
+        function closeAllStudentMenus(exceptRoomId) {
+            studentMenus.forEach((menu) => {
+                const shouldStayOpen = typeof exceptRoomId !== 'undefined' && menu.dataset.studentMenu === String(exceptRoomId);
+                menu.classList.toggle('is-open', shouldStayOpen);
+                menu.setAttribute('aria-hidden', shouldStayOpen ? 'false' : 'true');
+            });
+        }
+
+        function updateAddStudentsSubmitState(form) {
+            if (!form) return;
+            const submitButton = form.querySelector('[data-add-students-submit]');
+            if (!submitButton) return;
+
+            const hasSelection = form.querySelector('input[name="student_ids[]"]:checked') !== null;
+            submitButton.disabled = !hasSelection;
+        }
+
+        function renderStudentMenuList(roomId, students) {
+            const list = document.querySelector(`[data-student-menu-list="${roomId}"]`);
+            if (!list) return;
+
+            if (!students.length) {
+                list.innerHTML = '<div class="empty-state compact">Tous les étudiants disponibles sont déjà ajoutés.</div>';
+                const form = list.closest('form');
+                updateAddStudentsSubmitState(form);
+                return;
+            }
+
+            list.innerHTML = students.map((student) => `
+                <label class="student-option">
+                    <input type="checkbox" name="student_ids[]" value="${escapeHtml(student.id)}">
+                    <span>${escapeHtml(student.display_name)}</span>
+                </label>
+            `).join('');
+            const form = list.closest('form');
+            updateAddStudentsSubmitState(form);
+        }
+
+        function updateRoomStudentCount(roomId, count) {
+            const badge = document.querySelector(`[data-room-student-count="${roomId}"]`);
+            if (!badge) return;
+            badge.textContent = `${count} étudiant(s) placés`;
+        }
+
+        studentMenuButtons.forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const roomId = button.dataset.openStudentMenu;
+                const menu = document.querySelector(`[data-student-menu="${roomId}"]`);
+                if (!menu) return;
+                const willOpen = !menu.classList.contains('is-open');
+                closeAllStudentMenus();
+                menu.classList.toggle('is-open', willOpen);
+                menu.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+            });
+        });
+
+        closeStudentMenuButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                closeAllStudentMenus();
+            });
+        });
+
+        addStudentsForms.forEach((form) => {
+            updateAddStudentsSubmitState(form);
+
+            form.addEventListener('change', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLInputElement) || target.name !== 'student_ids[]') {
+                    return;
+                }
+                updateAddStudentsSubmitState(form);
+            });
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const checked = Array.from(form.querySelectorAll('input[name="student_ids[]"]:checked'));
+                if (!checked.length) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('index.php?p=placement_add_students', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    });
+                    const data = await response.json();
+
+                    if (!data.ok) {
+                        alert(data.message || 'Ajout impossible.');
+                        return;
+                    }
+
+                    (data.updated_seats || []).forEach((payload) => {
+                        const seat = document.querySelector(`.seat[data-room="${data.room_id}"][data-seat-key="${payload.key}"]`);
+                        if (!seat) return;
+                        const nameNode = seat.querySelector('.seat-name');
+                        if (nameNode) {
+                            nameNode.textContent = payload.name || '';
+                        }
+                        seat.classList.toggle('is-empty', !!payload.empty);
+                    });
+
+                    updateRoomStudentCount(data.room_id, data.student_count || 0);
+                    renderStudentMenuList(data.room_id, data.available_students || []);
+                    form.reset();
+                    updateAddStudentsSubmitState(form);
+                    closeAllStudentMenus();
+                } catch (error) {
+                    alert('Ajout impossible.');
+                }
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            if (target.closest('.student-menu') || target.closest('[data-open-student-menu]')) {
+                return;
+            }
+
+            closeAllStudentMenus();
         });
 
         const seats = Array.from(document.querySelectorAll('.seat'));

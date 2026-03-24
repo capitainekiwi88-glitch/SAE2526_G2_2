@@ -120,7 +120,21 @@
     .room-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
     .room-tab { min-height: 36px; border-radius: 999px; border: 1px solid var(--line); padding: 0 14px; background: #f3f7fb; color: var(--text); font-weight: 700; font-size: .9rem; cursor: pointer; }
     .room-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .room-card { padding: 16px; }
+    .room-card { padding: 16px; position: relative; }
+    .room-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 10px; }
+    .room-head-content { min-width: 0; flex: 1 1 auto; }
+    .room-head-actions { position: relative; display: flex; align-items: flex-start; gap: 8px; flex: 0 0 auto; }
+    .room-action-button { width: 44px; height: 44px; border-radius: 12px; border: 1px solid #2563eb; background: #2563eb; color: #fff; font-size: 2rem; line-height: 1; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease; box-shadow: 0 18px 34px rgba(37, 99, 235, 0.18); }
+    .room-action-button:hover { transform: translateY(-1px); box-shadow: 0 22px 38px rgba(29, 78, 216, 0.24); border-color: #1d4ed8; background: #1d4ed8; }
+    .room-action-button.wide { width: auto; min-width: 220px; padding: 0 16px; font-size: 1rem; }
+    .room-action-button.danger { font-size: 2.4rem; }
+    .student-menu { position: absolute; top: 54px; right: 0; width: min(360px, 78vw); background: #fff; border: 1px solid #dbe7f3; border-radius: 16px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16); padding: 14px; z-index: 30; opacity: 0; transform: translateY(-8px) scale(0.98); visibility: hidden; pointer-events: none; transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+    .student-menu.is-open { opacity: 1; transform: translateY(0) scale(1); visibility: visible; pointer-events: auto; transition: opacity .18s ease, transform .18s ease; }
+    .student-menu-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 2px; }
+    .student-option { display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 10px; cursor: pointer; background: #f8fbff; }
+    .student-option input { margin: 0; }
+    .student-option span { color: var(--text); font-size: .92rem; }
+    .student-menu-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; }
     .room-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
     .room-grid { display: grid; gap: 10px; }
     .seat-grid { display: grid; gap: 5px; width: 100%; }
@@ -151,6 +165,7 @@
     .desk-label { margin: 10px auto 0; border-radius: 10px; border: 1px solid #bfd4e6; padding: 8px 12px; width: fit-content; background: #edf6fd; color: var(--primary-dark); font-weight: 700; font-size: .88rem; }
     .room-panel { display: none; }
     .room-panel.active { display: block; }
+    .empty-state.compact { padding: 10px 12px; font-size: .9rem; border-radius: 12px; }
     @media (max-width: 1080px) {
         .hero, .setup-layout { grid-template-columns: 1fr; }
         .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
