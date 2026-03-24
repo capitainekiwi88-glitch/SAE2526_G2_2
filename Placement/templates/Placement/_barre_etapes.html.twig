@@ -1,0 +1,11 @@
+<section class="stage-strip">
+    <div class="stage-chip {{ current_stage == 1 ? 'active' }}">
+        <strong>Étape 1 : Création du devoir</strong>
+    </div>
+    <div class="stage-chip {{ current_stage == 2 ? 'active' : (current_stage < 2 ? 'locked' : '') }}">
+        <strong>Étape 2 : Placement des étudiants</strong>
+    </div>
+    <div class="stage-chip {{ current_stage == 3 ? 'active' : (current_stage < 3 ? 'locked' : '') }}">
+        <strong>Étape 3 : Conversion en PDF</strong>
+    </div>
+</section>

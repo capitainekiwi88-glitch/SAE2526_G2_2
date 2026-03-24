@@ -1,0 +1,7 @@
+{% if warnings %}
+    <div class="warning-list">
+        {% for warning in warnings %}
+            <div class="warning">{{ warning }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
