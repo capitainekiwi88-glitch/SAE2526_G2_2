@@ -31,9 +31,16 @@
                             </div>
                         </div>
 
+                        <div class="room-drag-hint" data-drag-hint="{{ room.id }}">
+                            Glisser et déposer les étudiants pour les réorganiser ou les supprimer
+                        </div>
+
                         <div class="room-head-actions">
                             <button class="room-action-button wide" type="button" data-open-student-menu="{{ room.id }}" title="Ajouter des étudiants">+ Ajouter des étudiants</button>
-                            <button class="room-action-button danger" type="button" title="Action à venir">×</button>
+                            <button class="room-action-button danger" type="button" data-delete-seat="{{ room.id }}" title="Supprimer l’étudiant déplacé">
+                                <img src="images/corbeille.png" alt="" aria-hidden="true">
+                                <span>Glisser ici pour supprimer</span>
+                            </button>
 
                             <div class="student-menu" data-student-menu="{{ room.id }}" aria-hidden="true">
                                 <form class="add-students-form" data-room-add-form="{{ room.id }}">

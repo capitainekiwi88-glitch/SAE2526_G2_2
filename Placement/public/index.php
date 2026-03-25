@@ -555,7 +555,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
                 'seat_meta' => $seatMeta,
                 'assignments' => $assignments,
                 'promo_ids' => [],
-                'selected_student_ids' => [],
+                'devoir_student_ids' => [],
                 'available_students' => [],
             ];
         }
@@ -569,7 +569,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
 
         $students = placementStudentsForSelection((int) $combination['promo_id'], (int) $combination['group_id']);
         foreach ($students as $student) {
-            $rooms[$roomId]['selected_student_ids'][$student['id']] = true;
+            $rooms[$roomId]['devoir_student_ids'][$student['id']] = true;
         }
         shuffle($students);
 
@@ -588,13 +588,13 @@ function placementBuildPlacements(array $combinations, array $salles): array
         $availableStudents = [];
         foreach (array_keys($room['promo_ids']) as $promoId) {
             foreach (placementStudentsForPromotion((int) $promoId) as $student) {
-                if (!isset($room['selected_student_ids'][$student['id']])) {
+                if (!isset($room['devoir_student_ids'][$student['id']])) {
                     $availableStudents[] = $student;
                 }
             }
         }
         $room['available_students'] = $availableStudents;
-        unset($room['promo_ids'], $room['selected_student_ids']);
+        unset($room['promo_ids']);
     }
     unset($room);
 
@@ -709,6 +709,65 @@ function placementSwapSeats(array &$state, int $roomId, string $seatA, string $s
     return ['ok' => false, 'message' => 'Salle introuvable.'];
 }
 
+function placementRemoveStudentFromSeat(array &$state, int $roomId, string $seatKey): array
+{
+    foreach ($state['placements']['rooms'] as &$room) {
+        if ((int) $room['id'] !== $roomId) {
+            continue;
+        }
+
+        if (!array_key_exists($seatKey, $room['assignments'])) {
+            return ['ok' => false, 'message' => 'Place introuvable.'];
+        }
+
+        $student = $room['assignments'][$seatKey];
+        if ($student === null) {
+            return ['ok' => true, 'room_id' => $roomId, 'student_count' => $room['student_count'], 'seat' => ['key' => $seatKey, 'name' => '', 'empty' => true], 'available_students' => array_map(static fn(array $item): array => ['id' => $item['id'], 'display_name' => $item['display_name']], $room['available_students'] ?? [])];
+        }
+
+        $room['assignments'][$seatKey] = null;
+        $room['student_count'] = max(0, (int) $room['student_count'] - 1);
+
+        if (!isset($room['devoir_student_ids'][$student['id']])) {
+            $alreadyAvailable = false;
+            foreach ($room['available_students'] as $availableStudent) {
+                if (($availableStudent['id'] ?? '') === $student['id']) {
+                    $alreadyAvailable = true;
+                    break;
+                }
+            }
+
+            if (!$alreadyAvailable) {
+                $room['available_students'][] = $student;
+                usort($room['available_students'], static function (array $a, array $b): int {
+                    return strcmp($a['display_name'], $b['display_name']);
+                });
+            }
+        }
+
+        return [
+            'ok' => true,
+            'room_id' => $roomId,
+            'student_count' => $room['student_count'],
+            'seat' => [
+                'key' => $seatKey,
+                'name' => '',
+                'empty' => true,
+            ],
+            'available_students' => array_map(
+                static fn(array $item): array => [
+                    'id' => $item['id'],
+                    'display_name' => $item['display_name'],
+                ],
+                $room['available_students'] ?? []
+            ),
+        ];
+    }
+    unset($room);
+
+    return ['ok' => false, 'message' => 'Salle introuvable.'];
+}
+
 $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../templates');
 $twig = new \Twig\Environment($loader, [
     'cache' => false,
@@ -781,6 +840,18 @@ switch ($page) {
                 $state,
                 (int) ($_POST['room_id'] ?? 0),
                 (array) ($_POST['student_ids'] ?? [])
+            )
+        );
+        exit;
+
+    case 'placement_remove_student':
+        header('Content-Type: application/json; charset=utf-8');
+        $state = &placementState();
+        echo json_encode(
+            placementRemoveStudentFromSeat(
+                $state,
+                (int) ($_POST['room_id'] ?? 0),
+                (string) ($_POST['seat_key'] ?? '')
             )
         );
         exit;

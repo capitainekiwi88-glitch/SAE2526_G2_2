@@ -299,6 +299,8 @@
         const studentMenus = Array.from(document.querySelectorAll('[data-student-menu]'));
         const closeStudentMenuButtons = Array.from(document.querySelectorAll('[data-close-student-menu]'));
         const addStudentsForms = Array.from(document.querySelectorAll('.add-students-form'));
+        const deleteSeatButtons = Array.from(document.querySelectorAll('[data-delete-seat]'));
+        const dragHints = Array.from(document.querySelectorAll('[data-drag-hint]'));
 
         function showLoadingOverlay() {
             if (!loadingOverlay) return;
@@ -534,7 +536,65 @@
                 seat.classList.remove('dragging');
                 seat.classList.remove('drop-target');
             });
+            studentMenuButtons.forEach((button) => {
+                button.classList.remove('is-hidden-drag');
+            });
+            dragHints.forEach((hint) => {
+                hint.classList.remove('is-hidden-drag');
+            });
+            deleteSeatButtons.forEach((button) => {
+                button.classList.remove('is-delete-ready');
+                button.classList.remove('is-delete-target');
+            });
             draggedSeat = null;
+        }
+
+        async function removeStudentFromSeat(sourceSeat, deleteButton) {
+            if (!sourceSeat || !deleteButton) {
+                clearDragState();
+                return;
+            }
+
+            if (sourceSeat.classList.contains('is-empty')) {
+                clearDragState();
+                return;
+            }
+
+            if (sourceSeat.dataset.room !== deleteButton.dataset.deleteSeat) {
+                clearDragState();
+                return;
+            }
+
+            try {
+                const body = new URLSearchParams({
+                    room_id: sourceSeat.dataset.room,
+                    seat_key: sourceSeat.dataset.seatKey
+                });
+
+                const response = await fetch('index.php?p=placement_remove_student', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: body.toString()
+                });
+                const data = await response.json();
+
+                if (!data.ok) {
+                    alert(data.message || 'Suppression impossible.');
+                    return;
+                }
+
+                const seatName = sourceSeat.querySelector('.seat-name');
+                if (seatName) {
+                    seatName.textContent = data.seat && data.seat.name ? data.seat.name : '';
+                }
+                sourceSeat.classList.add('is-empty');
+                updateRoomStudentCount(data.room_id, data.student_count || 0);
+                renderStudentMenuList(data.room_id, data.available_students || []);
+            } catch (error) {
+                alert('Suppression impossible.');
+            } finally {
+                clearDragState();
+            }
         }
 
         async function swapSeats(sourceSeat, targetSeat) {
@@ -585,8 +645,26 @@
             seat.draggable = true;
 
             seat.addEventListener('dragstart', (event) => {
+                if (seat.classList.contains('is-empty')) {
+                    event.preventDefault();
+                    return;
+                }
+
                 draggedSeat = seat;
                 seat.classList.add('dragging');
+                studentMenuButtons.forEach((button) => {
+                    button.classList.add('is-hidden-drag');
+                });
+                dragHints.forEach((hint) => {
+                    if (hint.dataset.dragHint === seat.dataset.room) {
+                        hint.classList.add('is-hidden-drag');
+                    }
+                });
+                deleteSeatButtons.forEach((button) => {
+                    if (button.dataset.deleteSeat === seat.dataset.room) {
+                        button.classList.add('is-delete-ready');
+                    }
+                });
                 if (event.dataTransfer) {
                     event.dataTransfer.effectAllowed = 'move';
                     event.dataTransfer.setData('text/plain', seat.dataset.seatKey || '');
@@ -616,6 +694,30 @@
 
             seat.addEventListener('dragend', () => {
                 clearDragState();
+            });
+        });
+
+        deleteSeatButtons.forEach((button) => {
+            button.addEventListener('dragover', (event) => {
+                if (!draggedSeat || draggedSeat.dataset.room !== button.dataset.deleteSeat) {
+                    return;
+                }
+
+                event.preventDefault();
+                if (event.dataTransfer) {
+                    event.dataTransfer.dropEffect = 'move';
+                }
+                button.classList.add('is-delete-target');
+            });
+
+            button.addEventListener('dragleave', () => {
+                button.classList.remove('is-delete-target');
+            });
+
+            button.addEventListener('drop', async (event) => {
+                event.preventDefault();
+                button.classList.remove('is-delete-target');
+                await removeStudentFromSeat(draggedSeat, button);
             });
         });
 
