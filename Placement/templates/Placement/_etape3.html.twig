@@ -3,9 +3,6 @@
         <div>
             <h2>Étape 3 : conversion PDF</h2>
         </div>
-        <div class="toolbar" style="margin-top:0;">
-            <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_placement"> <-- Retour à l'étape précédente</button></form>
-        </div>
     </div>
 
     <div class="export-grid">
@@ -34,5 +31,9 @@
                 </div>
             </article>
         {% endfor %}
+    </div>
+
+    <div class="stage-footer" style="justify-content:flex-start;">
+        <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_placement"> <-- Retour à l'étape précédente</button></form>
     </div>
 </section>
