@@ -3,36 +3,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Modele\DAO\EnseignantDAO;
 
 session_start();
-function placementDatabase(): ?\PDO
-{
-    static $pdo = false;
-    if ($pdo !== false) {
-        return $pdo;
-    }
-
-    $attempts = [
-        'mysql:host=127.0.0.1;dbname=placement;charset=utf8',
-        'mysql:host=127.0.0.1;dbname=infoplacement;charset=utf8',
-        'mysql:host=localhost;dbname=placement;charset=utf8',
-        'mysql:host=localhost;dbname=infoplacement;charset=utf8',
-    ];
-
-    foreach ($attempts as $dsn) {
-        try {
-            $pdo = new \PDO($dsn, 'root', '', [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-            ]);
-
-            return $pdo;
-        } catch (\PDOException $exception) {
-            continue;
-        }
-    }
-
-    $pdo = null;
-    return null;
-}
 
 function placementGroupLabel(string $rawName): string
 {
@@ -51,15 +21,13 @@ function placementBaseData(): array
         return $data;
     }
 
-    $pdo = placementDatabase();
-    if ($pdo === null) {
-        return $data = [
-            'promotions' => [],
-            'groupes' => [],
-            'matieres' => [],
-            'salles' => [],
-        ];
-    }
+    $pdo = \App\Modele\DAO\Connexion::getInstance();
+    // Remove the null check since Connexion::getInstance() throws exception on failure
+
+    $promoDao = new \App\Modele\DAO\PromotionDAO($pdo);
+    $groupeDao = new \App\Modele\DAO\GroupeDAO($pdo);
+    $matiereDao = new \App\Modele\DAO\MatiereDAO($pdo);
+    $salleDao = new \App\Modele\DAO\SalleDAO($pdo);
 
     $promotions = [];
     $promotionLabels = [];
@@ -78,37 +46,32 @@ function placementBaseData(): array
         $promotionLabels[(int) $row['id_promo']] = $label;
     }
 
+    // Get groupes using DAO
     $groupes = [];
-    $stmt = $pdo->query(
-        'SELECT id_groupe, nom_groupe, id_promo, nb_etud
-         FROM groupe
-         ORDER BY id_promo, nom_groupe'
-    );
-    foreach ($stmt->fetchAll() as $row) {
+    $groupeEntities = $groupeDao->findAll();
+    foreach ($groupeEntities as $groupe) {
         $groupes[] = [
-            'id' => (int) $row['id_groupe'],
-            'promo_id' => (int) $row['id_promo'],
-            'label' => placementGroupLabel((string) $row['nom_groupe']),
-            'student_count' => (int) $row['nb_etud'],
+            'id' => $groupe->getIdGroupe(),
+            'promo_id' => $groupe->getIdPromo(),
+            'label' => placementGroupLabel($groupe->getNomGroupe()),
+            'student_count' => $groupe->getNbEtudiant(),
         ];
     }
 
+    // Get matieres using DAO
     $matieres = [];
-    $stmt = $pdo->query(
-        'SELECT id_mat, nom_mat, id_promo
-         FROM matiere
-         ORDER BY id_promo, nom_mat'
-    );
-    foreach ($stmt->fetchAll() as $row) {
-        $promoId = (int) $row['id_promo'];
+    $matiereEntities = $matiereDao->findAll();
+    foreach ($matiereEntities as $matiere) {
+        $promoId = $matiere->getIdPromo();
         $matieres[] = [
-            'id' => (int) $row['id_mat'],
+            'id' => $matiere->getIdMatiere(),
             'promo_id' => $promoId,
-            'nom' => (string) $row['nom_mat'],
+            'nom' => $matiere->getNomMatiere(),
             'promo_label' => $promotionLabels[$promoId] ?? '',
         ];
     }
 
+    // Get salles (keep complex query for now)
     $salles = [];
     $stmt = $pdo->query(
         'SELECT s.id_salle, s.nom_salle, s.capacite, s.intercal, s.id_plan, b.nom_bat, p.donnee
@@ -139,11 +102,15 @@ function placementBaseData(): array
 
 function placementWarnings(): array
 {
-    if (placementDatabase() !== null) {
+    try {
+        // Test the DAO connection (university server)
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        // Try a simple query to verify connection
+        $stmt = $pdo->query("SELECT 1");
         return [];
+    } catch (\Exception $e) {
+        return ['La base de données de placement est actuellement indisponible.'];
     }
-
-    return ['La base de données de placement est actuellement indisponible.'];
 }
 
 // au cas ou, pourrait etre supprimée bientot
@@ -233,74 +200,18 @@ function placementFindById(array $items, int $id): ?array
 
 function placementStudentsForSelection(int $promoId, int $groupId): array
 {
-    $pdo = placementDatabase();
-    if ($pdo === null) {
-        return [];
-    }
+    $pdo = \App\Modele\DAO\Connexion::getInstance();
 
-    if ($groupId === 0) {
-        $stmt = $pdo->prepare(
-            'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
-             FROM etudiant e
-             JOIN groupe g ON g.id_groupe = e.id_groupe
-             WHERE g.id_promo = :promo
-             ORDER BY e.nom_etudiant, e.prenom_etudiant'
-        );
-        $stmt->execute(['promo' => $promoId]);
-    } else {
-        $stmt = $pdo->prepare(
-            'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
-             FROM etudiant e
-             WHERE e.id_groupe = :groupe
-             ORDER BY e.nom_etudiant, e.prenom_etudiant'
-        );
-        $stmt->execute(['groupe' => $groupId]);
-    }
-
-    $students = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $students[] = [
-            'id' => (string) $row['id_etudiant'],
-            'promo_id' => $promoId,
-            'group_id' => (int) $row['id_groupe'],
-            'last_name' => (string) $row['nom_etudiant'],
-            'first_name' => (string) $row['prenom_etudiant'],
-            'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
-        ];
-    }
-
-    return $students;
+    $etudiantDao = new \App\Modele\DAO\EtudiantDAO($pdo);
+    return $etudiantDao->getStudentsForSelection($promoId, $groupId);
 }
 
 function placementStudentsForPromotion(int $promoId): array
 {
-    $pdo = placementDatabase();
-    if ($pdo === null) {
-        return [];
-    }
+    $pdo = \App\Modele\DAO\Connexion::getInstance();
 
-    $stmt = $pdo->prepare(
-        'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
-         FROM etudiant e
-         JOIN groupe g ON g.id_groupe = e.id_groupe
-         WHERE g.id_promo = :promo
-         ORDER BY e.nom_etudiant, e.prenom_etudiant'
-    );
-    $stmt->execute(['promo' => $promoId]);
-
-    $students = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $students[] = [
-            'id' => (string) $row['id_etudiant'],
-            'promo_id' => $promoId,
-            'group_id' => (int) $row['id_groupe'],
-            'last_name' => (string) $row['nom_etudiant'],
-            'first_name' => (string) $row['prenom_etudiant'],
-            'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
-        ];
-    }
-
-    return $students;
+    $etudiantDao = new \App\Modele\DAO\EtudiantDAO($pdo);
+    return $etudiantDao->getStudentsForPromotion($promoId);
 }
 
 function placementStudentCount(int $promoId, int $groupId): int
@@ -1126,7 +1037,7 @@ switch ($page) {
     case 'login_verify':
         $login = $_POST['text'] ?? '';
         $password = $_POST['password'] ?? '';
-        $ensDao = new EnseignantDAO(placementDatabase());
+        $ensDao = new EnseignantDAO();
         $enseignant = $ensDao->getEnseignantByLogin($login);
         if ($enseignant && $ensDao->verifyPassword($login, $password)) {
             

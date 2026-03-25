@@ -5,8 +5,8 @@ use App\Modele\Entity\Etudiant;
 class EtudiantDAO {
     private PDO $_db;
 
-    public function __construct() {
-        $this->_db = Connexion::getInstance();
+    public function __construct(?PDO $pdo = null) {
+        $this->_db = $pdo ?? Connexion::getInstance();
     }
 
     public function getById(int $id): ?Etudiant {
@@ -74,6 +74,66 @@ class EtudiantDAO {
             ':mob_reduite' => $e->getMobReduite(),
             ':id'  => $e->getIdEtudiant()
         ]);
+    }
+
+    public function getStudentsForSelection(int $promoId, int $groupId = 0): array {
+        if ($groupId === 0) {
+            $stmt = $this->_db->prepare(
+                'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+                 FROM etudiant e
+                 JOIN groupe g ON g.id_groupe = e.id_groupe
+                 WHERE g.id_promo = :promo
+                 ORDER BY e.nom_etudiant, e.prenom_etudiant'
+            );
+            $stmt->execute(['promo' => $promoId]);
+        } else {
+            $stmt = $this->_db->prepare(
+                'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+                 FROM etudiant e
+                 WHERE e.id_groupe = :groupe
+                 ORDER BY e.nom_etudiant, e.prenom_etudiant'
+            );
+            $stmt->execute(['groupe' => $groupId]);
+        }
+
+        $students = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $students[] = [
+                'id' => (string) $row['id_etudiant'],
+                'promo_id' => $promoId,
+                'group_id' => (int) $row['id_groupe'],
+                'last_name' => (string) $row['nom_etudiant'],
+                'first_name' => (string) $row['prenom_etudiant'],
+                'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
+            ];
+        }
+
+        return $students;
+    }
+
+    public function getStudentsForPromotion(int $promoId): array {
+        $stmt = $this->_db->prepare(
+            'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+             FROM etudiant e
+             JOIN groupe g ON g.id_groupe = e.id_groupe
+             WHERE g.id_promo = :promo
+             ORDER BY e.nom_etudiant, e.prenom_etudiant'
+        );
+        $stmt->execute(['promo' => $promoId]);
+
+        $students = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $students[] = [
+                'id' => (string) $row['id_etudiant'],
+                'promo_id' => $promoId,
+                'group_id' => (int) $row['id_groupe'],
+                'last_name' => (string) $row['nom_etudiant'],
+                'first_name' => (string) $row['prenom_etudiant'],
+                'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
+            ];
+        }
+
+        return $students;
     }
 
 }

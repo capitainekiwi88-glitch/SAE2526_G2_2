@@ -5,8 +5,8 @@ use App\Modele\Entity\Salle;
 class SalleDAO {
     private PDO $_db;
 
-    public function __construct() {
-        $this->_db = Connexion::getInstance();
+    public function __construct(?PDO $pdo = null) {
+        $this->_db = $pdo ?? Connexion::getInstance();
     }
 
     public function getById(int $id): ?Salle {
