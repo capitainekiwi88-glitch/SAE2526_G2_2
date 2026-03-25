@@ -3,8 +3,38 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 session_start();
 
-// Valeurs fictives pour tester l'affichage du placement, à remplacer par des données réelles provenant de la base de données via les DAO
-function placementBaseData(): array
+function placementDatabase(): ?\PDO
+{
+    static $pdo = false;
+    if ($pdo !== false) {
+        return $pdo;
+    }
+
+    $attempts = [
+        'mysql:host=127.0.0.1;dbname=placement;charset=utf8',
+        'mysql:host=127.0.0.1;dbname=infoplacement;charset=utf8',
+        'mysql:host=localhost;dbname=placement;charset=utf8',
+        'mysql:host=localhost;dbname=infoplacement;charset=utf8',
+    ];
+
+    foreach ($attempts as $dsn) {
+        try {
+            $pdo = new \PDO($dsn, 'root', '', [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            ]);
+
+            return $pdo;
+        } catch (\PDOException $exception) {
+            continue;
+        }
+    }
+
+    $pdo = null;
+    return null;
+}
+
+function placementFallbackData(): array
 {
     return [
         'promotions' => [
@@ -54,6 +84,113 @@ function placementBaseData(): array
             
         ],
     ];
+}
+
+function placementGroupLabel(string $rawName): string
+{
+    $name = trim($rawName);
+    if ($name === '') {
+        return '--';
+    }
+
+    return stripos($name, 'groupe') === 0 ? $name : 'Groupe ' . $name;
+}
+
+function placementBaseData(): array
+{
+    static $data = null;
+    if ($data !== null) {
+        return $data;
+    }
+
+    $pdo = placementDatabase();
+    if ($pdo === null) {
+        return $data = placementFallbackData();
+    }
+
+    $promotions = [];
+    $promotionLabels = [];
+    $stmt = $pdo->query(
+        'SELECT p.id_promo, p.nom_promo, p.annee, d.nom_dpt
+         FROM promotion p
+         JOIN departement d ON d.id_dpt = p.id_dpt
+         ORDER BY p.nom_promo, p.annee'
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        $label = trim($row['nom_dpt'] . ' ' . $row['nom_promo'] . ' ' . $row['annee']);
+        $promotions[] = [
+            'id' => (int) $row['id_promo'],
+            'label' => $label,
+        ];
+        $promotionLabels[(int) $row['id_promo']] = $label;
+    }
+
+    $groupes = [];
+    $stmt = $pdo->query(
+        'SELECT id_groupe, nom_groupe, id_promo, nb_etud
+         FROM groupe
+         ORDER BY id_promo, nom_groupe'
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        $groupes[] = [
+            'id' => (int) $row['id_groupe'],
+            'promo_id' => (int) $row['id_promo'],
+            'label' => placementGroupLabel((string) $row['nom_groupe']),
+            'student_count' => (int) $row['nb_etud'],
+        ];
+    }
+
+    $matieres = [];
+    $stmt = $pdo->query(
+        'SELECT id_mat, nom_mat, id_promo
+         FROM matiere
+         ORDER BY id_promo, nom_mat'
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        $promoId = (int) $row['id_promo'];
+        $matieres[] = [
+            'id' => (int) $row['id_mat'],
+            'promo_id' => $promoId,
+            'nom' => (string) $row['nom_mat'],
+            'promo_label' => $promotionLabels[$promoId] ?? '',
+        ];
+    }
+
+    $salles = [];
+    $stmt = $pdo->query(
+        'SELECT s.id_salle, s.nom_salle, s.capacite, s.intercal, s.id_plan, b.nom_bat, p.donnee
+         FROM salle s
+         LEFT JOIN batiment b ON b.id_bat = s.id_bat
+         LEFT JOIN plan p ON p.id_plan = s.id_plan
+         ORDER BY s.nom_salle'
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        $salles[] = [
+            'id' => (int) $row['id_salle'],
+            'nom' => (string) $row['nom_salle'],
+            'batiment' => (string) ($row['nom_bat'] ?? ''),
+            'capacite' => (int) $row['capacite'],
+            'intercal' => (int) ($row['intercal'] ?? 0),
+            'id_plan' => isset($row['id_plan']) ? (int) $row['id_plan'] : 0,
+            'plan_data' => (string) ($row['donnee'] ?? ''),
+        ];
+    }
+
+    return $data = [
+        'promotions' => $promotions,
+        'groupes' => $groupes,
+        'matieres' => $matieres,
+        'salles' => $salles,
+    ];
+}
+
+function placementWarnings(): array
+{
+    if (placementDatabase() !== null) {
+        return [];
+    }
+
+    return ['La base de données de placement est actuellement indisponible. L’interface utilise temporairement les données de secours.'];
 }
 
 // au cas ou, pourrait etre supprimée bientot
@@ -253,6 +390,44 @@ function placementGeneratedStudents(int $promoId, int $groupId): array
 
 function placementStudentsForSelection(int $promoId, int $groupId): array
 {
+    $pdo = placementDatabase();
+    if ($pdo !== null) {
+        if ($groupId === 0) {
+            $stmt = $pdo->prepare(
+                'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+                 FROM etudiant e
+                 JOIN groupe g ON g.id_groupe = e.id_groupe
+                 WHERE g.id_promo = :promo
+                 ORDER BY e.nom_etudiant, e.prenom_etudiant'
+            );
+            $stmt->execute(['promo' => $promoId]);
+        } else {
+            $stmt = $pdo->prepare(
+                'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+                 FROM etudiant e
+                 WHERE e.id_groupe = :groupe
+                 ORDER BY e.nom_etudiant, e.prenom_etudiant'
+            );
+            $stmt->execute(['groupe' => $groupId]);
+        }
+
+        $students = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $students[] = [
+                'id' => (string) $row['id_etudiant'],
+                'promo_id' => $promoId,
+                'group_id' => (int) $row['id_groupe'],
+                'last_name' => (string) $row['nom_etudiant'],
+                'first_name' => (string) $row['prenom_etudiant'],
+                'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
+            ];
+        }
+
+        if (!empty($students)) {
+            return $students;
+        }
+    }
+
     $fixtures = placementStudentFixtures();
 
     if ($groupId === 0) {
@@ -281,6 +456,34 @@ function placementStudentsForSelection(int $promoId, int $groupId): array
 
 function placementStudentsForPromotion(int $promoId): array
 {
+    $pdo = placementDatabase();
+    if ($pdo !== null) {
+        $stmt = $pdo->prepare(
+            'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+             FROM etudiant e
+             JOIN groupe g ON g.id_groupe = e.id_groupe
+             WHERE g.id_promo = :promo
+             ORDER BY e.nom_etudiant, e.prenom_etudiant'
+        );
+        $stmt->execute(['promo' => $promoId]);
+
+        $students = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $students[] = [
+                'id' => (string) $row['id_etudiant'],
+                'promo_id' => $promoId,
+                'group_id' => (int) $row['id_groupe'],
+                'last_name' => (string) $row['nom_etudiant'],
+                'first_name' => (string) $row['prenom_etudiant'],
+                'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
+            ];
+        }
+
+        if (!empty($students)) {
+            return $students;
+        }
+    }
+
     $fixtures = placementStudentFixtures();
 
     if (!isset($fixtures[$promoId])) {
@@ -499,22 +702,58 @@ function placementSortedSeatKeys(array $assignments): array
     return $seatKeys;
 }
 
+function placementLayoutFromSalle(array $salle): array
+{
+    $capacity = max(0, (int) ($salle['capacite'] ?? 0));
+    $planData = (string) ($salle['plan_data'] ?? '');
+
+    if ($planData !== '') {
+        $rawRows = array_values(array_filter(explode('-', $planData), static fn(string $row): bool => $row !== ''));
+        if (!empty($rawRows)) {
+            $layout = [];
+            $usableSeats = 0;
+
+            foreach ($rawRows as $rawRow) {
+                $row = [];
+                foreach (str_split($rawRow) as $cell) {
+                    if ($cell === '0') {
+                        $row[] = 'aisle';
+                        continue;
+                    }
+
+                    if ($usableSeats >= $capacity) {
+                        $row[] = 'aisle';
+                        continue;
+                    }
+
+                    $row[] = $cell === '3' ? 'accessible' : 'seat';
+                    $usableSeats++;
+                }
+                $layout[] = $row;
+            }
+
+            if (!empty($layout)) {
+                return $layout;
+            }
+        }
+    }
+
+    $layout = [];
+    $rows = max(1, (int) ceil($capacity / 15));
+    $remaining = $capacity;
+    for ($row = 0; $row < $rows; $row++) {
+        $seatsInRow = min(15, $remaining);
+        $layout[$row] = array_fill(0, $seatsInRow, 'seat');
+        $remaining -= $seatsInRow;
+    }
+
+    return $layout;
+}
+
 function placementBuildPlacements(array $combinations, array $salles): array
 {
     $rooms = [];
     $promoExports = [];
-    $buildLayout = static function (int $capacity): array {
-        $layout = [];
-        $rows = max(1, (int) ceil($capacity / 15));
-        $remaining = $capacity;
-        for ($row = 0; $row < $rows; $row++) {
-            $seatsInRow = min(15, $remaining);
-            $layout[$row] = array_fill(0, $seatsInRow, 'seat');
-            $remaining -= $seatsInRow;
-        }
-
-        return $layout;
-    };
 
     foreach ($combinations as $combination) {
         $roomId = (int) $combination['salle_id'];
@@ -524,7 +763,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
         }
 
         if (!isset($rooms[$roomId])) {
-            $layout = $buildLayout((int) $salle['capacite']);
+            $layout = placementLayoutFromSalle($salle);
             $seatMeta = [];
             $assignments = [];
 
@@ -955,7 +1194,7 @@ switch ($page) {
 
         echo $twig->render('Placement/placement.html.twig', [
             'current_stage' => $state['current_stage'],
-            'warnings' => [],
+            'warnings' => placementWarnings(),
             'exam' => $state['exam'],
             'form' => $state['form'],
             'date_error' => $state['date_error'],
