@@ -11,7 +11,9 @@
                 <h3>{{ room.name }}</h3>
                 <div class="summary-line">
                     <span>{{ room.student_count }} étudiant(s)</span>
-                    <span>{{ room.supervisor }}</span>
+                    {% if room.supervisor %}
+                        <span>{{ room.supervisor }}</span>
+                    {% endif %}
                 </div>
                 <div class="export-links">
                     <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=room_list&room={{ room.id }}">Plan pour {{ room.name }}</a>

@@ -294,6 +294,7 @@
         const tabs = Array.from(document.querySelectorAll('[data-room-tab]'));
         const panels = Array.from(document.querySelectorAll('[data-room-panel]'));
         const rerollForms = Array.from(document.querySelectorAll('.room-reroll-footer'));
+        const rerollHeaderForms = Array.from(document.querySelectorAll('.room-reroll-header'));
         const loadingOverlay = document.getElementById('loading-overlay');
         const studentMenuButtons = Array.from(document.querySelectorAll('[data-open-student-menu]'));
         const studentMenus = Array.from(document.querySelectorAll('[data-student-menu]'));
@@ -319,7 +320,7 @@
                 if (form === placementSetupForm || form.classList.contains('remove-combination-form') || form.classList.contains('add-students-form')) {
                     return;
                 }
-                if (form.classList.contains('room-reroll-footer')) {
+                if (form.classList.contains('room-reroll-footer') || form.classList.contains('room-reroll-header')) {
                     sessionStorage.setItem('placementScrollY', String(window.scrollY));
                     return;
                 }
@@ -396,6 +397,7 @@
                 tabs.forEach((item) => item.classList.toggle('active', item === tab));
                 panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.roomPanel === roomId));
                 rerollForms.forEach((form) => form.classList.toggle('active', form.dataset.roomReroll === roomId));
+                rerollHeaderForms.forEach((form) => form.classList.toggle('active', form.dataset.roomReroll === roomId));
                 closeAllStudentMenus();
             });
         });
@@ -539,6 +541,9 @@
             studentMenuButtons.forEach((button) => {
                 button.classList.remove('is-hidden-drag');
             });
+            rerollHeaderForms.forEach((form) => {
+                form.classList.remove('is-hidden-drag');
+            });
             dragHints.forEach((hint) => {
                 hint.classList.remove('is-hidden-drag');
             });
@@ -654,6 +659,11 @@
                 seat.classList.add('dragging');
                 studentMenuButtons.forEach((button) => {
                     button.classList.add('is-hidden-drag');
+                });
+                rerollHeaderForms.forEach((form) => {
+                    if (form.dataset.roomReroll === seat.dataset.room) {
+                        form.classList.add('is-hidden-drag');
+                    }
                 });
                 dragHints.forEach((hint) => {
                     if (hint.dataset.dragHint === seat.dataset.room) {

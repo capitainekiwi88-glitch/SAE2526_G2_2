@@ -15,7 +15,7 @@
                         <label for="date_exam">Date du devoir</label>
                         <div class="field-error" id="date-error-message" {% if not date_error %}style="display:none;"{% endif %}>{{ date_error }}</div>
                     </div>
-                    <input type="date" id="date_exam" name="date_exam" value="{{ exam.date }}" min="{{ today_iso }}">
+                    <input type="date" id="date_exam" name="date_exam" value="{{ exam.date ?: today_iso }}" min="{{ today_iso }}">
                 </div>
                 <div class="field field-start">
                     <label>Heure de début</label>

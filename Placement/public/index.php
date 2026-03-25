@@ -34,58 +34,6 @@ function placementDatabase(): ?\PDO
     return null;
 }
 
-function placementFallbackData(): array
-{
-    return [
-        'promotions' => [
-            ['id' => 1, 'label' => 'INFO BUT1'],
-            ['id' => 2, 'label' => 'INFO BUT2'],
-            ['id' => 3, 'label' => 'INFO BUT2 Passerelle'],
-            ['id' => 4, 'label' => 'INFO BUT3'],
-        ],
-        'groupes' => [
-            ['id' => 1, 'promo_id' => 1, 'label' => 'Groupe 1'],
-            ['id' => 2, 'promo_id' => 1, 'label' => 'Groupe 2'],
-            ['id' => 3, 'promo_id' => 1, 'label' => 'Groupe 3'],
-            ['id' => 4, 'promo_id' => 1, 'label' => 'Groupe 4'],
-            ['id' => 5, 'promo_id' => 2, 'label' => 'Groupe 1'],
-            ['id' => 6, 'promo_id' => 2, 'label' => 'Groupe 2'],
-            ['id' => 7, 'promo_id' => 2, 'label' => 'Groupe 3'],
-            ['id' => 8, 'promo_id' => 3, 'label' => 'Groupe 1'],
-            ['id' => 9, 'promo_id' => 4, 'label' => 'Groupe 1'],
-            ['id' => 10, 'promo_id' => 4, 'label' => 'Groupe 2'],
-            ['id' => 11, 'promo_id' => 4, 'label' => 'Groupe 3'],
-
-        ],
-        'matieres' => [
-            ['id' => 1, 'promo_id' => 1, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT1'],
-            ['id' => 2, 'promo_id' => 1, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT1'],
-            ['id' => 3, 'promo_id' => 1, 'nom' => 'Math', 'promo_label' => 'INFO BUT1'],
-
-            ['id' => 4, 'promo_id' => 2, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT2'],
-            ['id' => 5, 'promo_id' => 2, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT2'],
-            ['id' => 6, 'promo_id' => 2, 'nom' => 'Math', 'promo_label' => 'INFO BUT2'],
-
-            ['id' => 7, 'promo_id' => 4, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT2 Passerelle'],
-            ['id' => 8, 'promo_id' => 4, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT2 Passerelle'],
-            ['id' => 9, 'promo_id' => 4, 'nom' => 'Math', 'promo_label' => 'INFO BUT2 Passerelle'],
-
-            ['id' => 10, 'promo_id' => 3, 'nom' => 'Eco-Gestion-Droit', 'promo_label' => 'INFO BUT3'],
-            ['id' => 11, 'promo_id' => 3, 'nom' => 'Informatique', 'promo_label' => 'INFO BUT3'],
-            ['id' => 12, 'promo_id' => 3, 'nom' => 'Math', 'promo_label' => 'INFO BUT3'],
-
-
-        ],
-        'salles' => [
-            ['id' => 1, 'nom' => 'Amphi A', 'batiment' => 'IUT', 'capacite' => 150],
-            ['id' => 2, 'nom' => 'Amphi B', 'batiment' => 'IUT', 'capacite' => 150],
-            ['id' => 3, 'nom' => 'B09', 'batiment' => 'IUT', 'capacite' => 56],
-            ['id' => 4, 'nom' => 'E23', 'batiment' => 'IUT', 'capacite' => 32],
-            
-        ],
-    ];
-}
-
 function placementGroupLabel(string $rawName): string
 {
     $name = trim($rawName);
@@ -105,7 +53,12 @@ function placementBaseData(): array
 
     $pdo = placementDatabase();
     if ($pdo === null) {
-        return $data = placementFallbackData();
+        return $data = [
+            'promotions' => [],
+            'groupes' => [],
+            'matieres' => [],
+            'salles' => [],
+        ];
     }
 
     $promotions = [];
@@ -190,7 +143,7 @@ function placementWarnings(): array
         return [];
     }
 
-    return ['La base de données de placement est actuellement indisponible. L’interface utilise temporairement les données de secours.'];
+    return ['La base de données de placement est actuellement indisponible.'];
 }
 
 // au cas ou, pourrait etre supprimée bientot
@@ -219,7 +172,7 @@ function placementDefaultState(): array
     return [
         'current_stage' => 1,
         'exam' => [
-            'date' => '',
+            'date' => (new \DateTimeImmutable('today'))->format('Y-m-d'),
             'start_hour' => '08',
             'start_minute' => '00',
             'duration_hour' => '02',
@@ -278,186 +231,14 @@ function placementFindById(array $items, int $id): ?array
     return null;
 }
 
-function placementStudentFixtures(): array
-{
-    return [
-        2 => [
-            5 => [
-                ['ADAM', 'Mathis'],
-                ['ADOLPH', 'Noa'],
-                ['BAILLY', 'Clement'],
-                ['BARETH', 'Aymeric'],
-                ['BAYIHA-MBARGA', 'Dieudonne'],
-                ['BOUGUET', 'Thomas'],
-                ['BONKOSI', 'Ange'],
-                ['CHAOUCHI', 'Aksel'],
-                ['DARCIAUX', 'Yoann'],
-                ['DOBOS', 'Leo'],
-                ['FEIPEL', 'Aurelien'],
-                ['FUSCIELLO', 'Baptiste'],
-                ['MALLINGER', 'Robin'],
-                ['MARCHAL', 'Aurelien'],
-                ['PERON', 'Ethan'],
-                ['ALICI', 'Teoman'],
-                ['BENDEKKICHE', 'Sajad'],
-                ['BOSCAROL', 'Francis'],
-                ['EL-AAMERY', 'Ilyas'],
-                ['GRAINE', 'Yanis'],
-                ['ISHAK', 'Yacine'],
-                ['ILSER', 'Maxence'],
-                ['JOLY', 'Aurelien'],
-                ['PRANDATO', 'Jade'],
-                ['QUENTIN', 'Bastien'],
-                ['ROUMILI', 'Rabah'],
-                ['SWIATOKA', 'Maximilien'],
-                ['TAVERNI', 'Alexandre'],
-                ['TUNC', 'Yilmaz'],
-                ['WADDELL', 'Simon'],
-            ],
-            6 => [
-                ['ARSLAN', 'Aedem'],
-                ['BARRE', 'Alexandre'],
-                ['BENMOUEFFEK', 'Anais'],
-                ['COLASSE', 'Nathan'],
-                ['FADILY', 'Ikrame'],
-                ['FEISTHAUER', 'Simon'],
-                ['GOEPFERT-BROUTTA', 'Maé'],
-                ['LAURI', 'Matteo'],
-                ['LEONARD--RUBECK', 'Enzo'],
-                ['ROUX', 'Mathieu'],
-                ['SCHUMACHER', 'Theo'],
-                ['SIMON', 'Leopold'],
-                ['TOK', 'Mikail'],
-                ['TOPAL', 'Fatih'],
-                ['BOUHOUCH', 'Chouaib'],
-                ['CORONA', 'Nikola'],
-                ['DENOYELLE', 'Victorien'],
-                ['FREY', 'Thomas'],
-                ['GAUZERE', 'Julien'],
-                ['GINOT', 'Auguste'],
-                ['HEYTENNE', 'Mathis'],
-                ['KHOUCHI', 'Inas'],
-                ['LUPO', 'Loic'],
-                ['MEDOU-AMOUGUI', 'Sam-Dylan'],
-                ['SCHOU', 'Lilian'],
-                ['STILLE', 'Evan'],
-                ['THIS', 'Esteban'],
-                ['TIRONI', 'Baptiste'],
-            ],
-            7 => [
-                ['GIORDANI', 'Enzo'],
-                ['GIRRES', 'Alice'],
-                ['HUET', 'Severin'],
-                ['KIRCHER', 'Nino'],
-                ['LADURELLE', 'Alexis'],
-                ['LAMBERT', 'Quentin'],
-                ['OUKARA', 'Anass'],
-                ['PETROVIC', 'Hugo'],
-                ['PIZETTE', 'Bartholome'],
-                ['PLANCHER', 'Mattéo'],
-                ['RICHET', 'Fabien'],
-                ['SALVADORI', 'Théo'],
-                ['SCHAAL', 'Olivier'],
-                ['TRIBUT', 'Enzo'],
-                ['ZOLLER', 'Mathieu'],
-            ],
-        ],
-    ];
-}
-
-function placementStudentRecord(int $promoId, int $groupId, int $index, string $nom, string $prenom): array
-{
-    return [
-        'id' => sprintf('%d-%d-%d', $promoId, $groupId, $index),
-        'promo_id' => $promoId,
-        'group_id' => $groupId,
-        'last_name' => $nom,
-        'first_name' => $prenom,
-        'display_name' => $nom . ' ' . $prenom,
-    ];
-}
-
-function placementGeneratedStudents(int $promoId, int $groupId): array
-{
-    $count = $groupId === 0 ? 16 : 8;
-    $students = [];
-    for ($i = 1; $i <= $count; $i++) {
-        $students[] = placementStudentRecord($promoId, $groupId, $i, 'Etudiant', $promoId . '-' . $groupId . '-' . $i);
-    }
-
-    return $students;
-}
-
 function placementStudentsForSelection(int $promoId, int $groupId): array
 {
     $pdo = placementDatabase();
-    if ($pdo !== null) {
-        if ($groupId === 0) {
-            $stmt = $pdo->prepare(
-                'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
-                 FROM etudiant e
-                 JOIN groupe g ON g.id_groupe = e.id_groupe
-                 WHERE g.id_promo = :promo
-                 ORDER BY e.nom_etudiant, e.prenom_etudiant'
-            );
-            $stmt->execute(['promo' => $promoId]);
-        } else {
-            $stmt = $pdo->prepare(
-                'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
-                 FROM etudiant e
-                 WHERE e.id_groupe = :groupe
-                 ORDER BY e.nom_etudiant, e.prenom_etudiant'
-            );
-            $stmt->execute(['groupe' => $groupId]);
-        }
-
-        $students = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $students[] = [
-                'id' => (string) $row['id_etudiant'],
-                'promo_id' => $promoId,
-                'group_id' => (int) $row['id_groupe'],
-                'last_name' => (string) $row['nom_etudiant'],
-                'first_name' => (string) $row['prenom_etudiant'],
-                'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
-            ];
-        }
-
-        if (!empty($students)) {
-            return $students;
-        }
+    if ($pdo === null) {
+        return [];
     }
-
-    $fixtures = placementStudentFixtures();
 
     if ($groupId === 0) {
-        $students = [];
-        foreach (($fixtures[$promoId] ?? []) as $fixtureGroupId => $groupStudents) {
-            foreach ($groupStudents as $index => [$nom, $prenom]) {
-                $students[] = placementStudentRecord($promoId, (int) $fixtureGroupId, $index + 1, $nom, $prenom);
-            }
-        }
-
-        if (!empty($students)) {
-            return $students;
-        }
-    }
-
-    if (isset($fixtures[$promoId][$groupId])) {
-        return array_map(
-            static fn(array $student, int $index): array => placementStudentRecord($promoId, $groupId, $index + 1, $student[0], $student[1]),
-            $fixtures[$promoId][$groupId],
-            array_keys($fixtures[$promoId][$groupId])
-        );
-    }
-
-    return placementGeneratedStudents($promoId, $groupId);
-}
-
-function placementStudentsForPromotion(int $promoId): array
-{
-    $pdo = placementDatabase();
-    if ($pdo !== null) {
         $stmt = $pdo->prepare(
             'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
              FROM etudiant e
@@ -466,40 +247,58 @@ function placementStudentsForPromotion(int $promoId): array
              ORDER BY e.nom_etudiant, e.prenom_etudiant'
         );
         $stmt->execute(['promo' => $promoId]);
-
-        $students = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $students[] = [
-                'id' => (string) $row['id_etudiant'],
-                'promo_id' => $promoId,
-                'group_id' => (int) $row['id_groupe'],
-                'last_name' => (string) $row['nom_etudiant'],
-                'first_name' => (string) $row['prenom_etudiant'],
-                'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
-            ];
-        }
-
-        if (!empty($students)) {
-            return $students;
-        }
-    }
-
-    $fixtures = placementStudentFixtures();
-
-    if (!isset($fixtures[$promoId])) {
-        return [];
+    } else {
+        $stmt = $pdo->prepare(
+            'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+             FROM etudiant e
+             WHERE e.id_groupe = :groupe
+             ORDER BY e.nom_etudiant, e.prenom_etudiant'
+        );
+        $stmt->execute(['groupe' => $groupId]);
     }
 
     $students = [];
-    foreach ($fixtures[$promoId] as $groupId => $groupStudents) {
-        foreach ($groupStudents as $index => [$nom, $prenom]) {
-            $students[] = placementStudentRecord($promoId, (int) $groupId, $index + 1, $nom, $prenom);
-        }
+    foreach ($stmt->fetchAll() as $row) {
+        $students[] = [
+            'id' => (string) $row['id_etudiant'],
+            'promo_id' => $promoId,
+            'group_id' => (int) $row['id_groupe'],
+            'last_name' => (string) $row['nom_etudiant'],
+            'first_name' => (string) $row['prenom_etudiant'],
+            'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
+        ];
     }
 
-    usort($students, static function (array $a, array $b): int {
-        return strcmp($a['display_name'], $b['display_name']);
-    });
+    return $students;
+}
+
+function placementStudentsForPromotion(int $promoId): array
+{
+    $pdo = placementDatabase();
+    if ($pdo === null) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT e.id_etudiant, e.nom_etudiant, e.prenom_etudiant, e.id_groupe
+         FROM etudiant e
+         JOIN groupe g ON g.id_groupe = e.id_groupe
+         WHERE g.id_promo = :promo
+         ORDER BY e.nom_etudiant, e.prenom_etudiant'
+    );
+    $stmt->execute(['promo' => $promoId]);
+
+    $students = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $students[] = [
+            'id' => (string) $row['id_etudiant'],
+            'promo_id' => $promoId,
+            'group_id' => (int) $row['id_groupe'],
+            'last_name' => (string) $row['nom_etudiant'],
+            'first_name' => (string) $row['prenom_etudiant'],
+            'display_name' => $row['nom_etudiant'] . ' ' . $row['prenom_etudiant'],
+        ];
+    }
 
     return $students;
 }
@@ -707,44 +506,51 @@ function placementLayoutFromSalle(array $salle): array
     $capacity = max(0, (int) ($salle['capacite'] ?? 0));
     $planData = (string) ($salle['plan_data'] ?? '');
 
-    if ($planData !== '') {
-        $rawRows = array_values(array_filter(explode('-', $planData), static fn(string $row): bool => $row !== ''));
-        if (!empty($rawRows)) {
-            $layout = [];
-            $usableSeats = 0;
+    if ($planData === '') {
+        return [];
+    }
 
-            foreach ($rawRows as $rawRow) {
-                $row = [];
-                foreach (str_split($rawRow) as $cell) {
-                    if ($cell === '0') {
-                        $row[] = 'aisle';
-                        continue;
-                    }
-
-                    if ($usableSeats >= $capacity) {
-                        $row[] = 'aisle';
-                        continue;
-                    }
-
-                    $row[] = $cell === '3' ? 'accessible' : 'seat';
-                    $usableSeats++;
-                }
-                $layout[] = $row;
-            }
-
-            if (!empty($layout)) {
-                return $layout;
-            }
-        }
+    $rawRows = array_values(array_filter(explode('-', $planData), static fn(string $row): bool => $row !== ''));
+    if (empty($rawRows)) {
+        return [];
     }
 
     $layout = [];
-    $rows = max(1, (int) ceil($capacity / 15));
-    $remaining = $capacity;
-    for ($row = 0; $row < $rows; $row++) {
-        $seatsInRow = min(15, $remaining);
-        $layout[$row] = array_fill(0, $seatsInRow, 'seat');
-        $remaining -= $seatsInRow;
+    $seatCount = 0;
+
+    foreach ($rawRows as $rawRow) {
+        $row = [];
+        foreach (str_split($rawRow) as $cell) {
+            if ($cell === '0') {
+                $row[] = 'aisle';
+                continue;
+            }
+
+            $row[] = $cell === '3' ? 'accessible' : 'seat';
+            $seatCount++;
+        }
+        $layout[] = $row;
+    }
+
+    $excessSeats = max(0, $seatCount - $capacity);
+    if ($excessSeats === 0) {
+        return $layout;
+    }
+
+    // Le template numérote les rangées du bas vers le haut.
+    // Si le plan contient plus de places dessinées que la capacité déclarée,
+    // on neutralise donc les places du haut d'abord pour conserver la rangée 1 en bas.
+    foreach ($layout as $rowIndex => $row) {
+        foreach ($row as $colIndex => $cell) {
+            if ($excessSeats === 0) {
+                break 2;
+            }
+
+            if ($cell === 'seat' || $cell === 'accessible') {
+                $layout[$rowIndex][$colIndex] = 'aisle';
+                $excessSeats--;
+            }
+        }
     }
 
     return $layout;
@@ -788,7 +594,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
                 'building' => $salle['batiment'],
                 'student_count' => 0,
                 'capacity' => (int) $salle['capacite'],
-                'supervisor' => 'Surveillant test',
+                'supervisor' => null,
                 'combination_labels' => [],
                 'layout' => $layout,
                 'seat_meta' => $seatMeta,
@@ -1136,19 +942,27 @@ switch ($page) {
         }
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-            $state['exam'] = [
-                'date' => $_POST['date_exam'] ?? '',
-                'start_hour' => $_POST['start_hour'] ?? '08',
-                'start_minute' => $_POST['start_minute'] ?? '00',
-                'duration_hour' => $_POST['duration_hour'] ?? '02',
-                'duration_minute' => $_POST['duration_minute'] ?? '00',
-            ];
-            $state['form'] = [
-                'promo_id' => (string) ($_POST['promo_id'] ?? ''),
-                'group_id' => (string) ($_POST['group_id'] ?? '0'),
-                'matiere_id' => (string) ($_POST['matiere_id'] ?? ''),
-                'salle_id' => (string) ($_POST['salle_id'] ?? ''),
-            ];
+            $hasSetupPayload = array_key_exists('date_exam', $_POST)
+                || array_key_exists('promo_id', $_POST)
+                || array_key_exists('group_id', $_POST)
+                || array_key_exists('matiere_id', $_POST)
+                || array_key_exists('salle_id', $_POST);
+
+            if ($hasSetupPayload) {
+                $state['exam'] = [
+                    'date' => $_POST['date_exam'] ?? '',
+                    'start_hour' => $_POST['start_hour'] ?? '08',
+                    'start_minute' => $_POST['start_minute'] ?? '00',
+                    'duration_hour' => $_POST['duration_hour'] ?? '02',
+                    'duration_minute' => $_POST['duration_minute'] ?? '00',
+                ];
+                $state['form'] = [
+                    'promo_id' => (string) ($_POST['promo_id'] ?? ''),
+                    'group_id' => (string) ($_POST['group_id'] ?? '0'),
+                    'matiere_id' => (string) ($_POST['matiere_id'] ?? ''),
+                    'salle_id' => (string) ($_POST['salle_id'] ?? ''),
+                ];
+            }
             $state['date_error'] = '';
             $state['form_error'] = '';
             $action = $_POST['action'] ?? '';
