@@ -4,16 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accueil - {{ nom_projet }}</title>
-    
-    <link rel="stylesheet" href="/css/s_stage1.css">
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; background-color: #f3f4f6; color: #111827; margin: 0; padding: 0; }
+        .main-container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: #fff; border: 1px solid #d1d5db; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; overflow: hidden; }
+        .card-body { padding: 2rem 2.5rem; }
+        .welcome-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 1rem; color: #111827; }
+        .welcome-text { color: #4b5563; line-height: 1.7; font-size: 0.95rem; margin: 0 0 1.5rem; }
+        .btn-cta { display: inline-flex; align-items: center; justify-content: center; font-weight: 700; padding: 0.7rem 1.5rem; border-radius: 0.5rem; cursor: pointer; border: none; font-size: 0.95rem; background-color: #2563eb; color: #fff; text-decoration: none; transition: background-color 0.2s; }
+        .btn-cta:hover { background-color: #1d4ed8; }
+        .cta-wrapper { text-align: center; margin: 1.5rem 0; }
+        .warning-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 1rem 1.25rem; margin-top: 1.5rem; font-size: 0.85rem; color: #92400e; line-height: 1.6; }
+        .footer-credits { text-align: center; color: #9ca3af; font-size: 0.78rem; line-height: 1.6; margin-top: 1.5rem; padding: 1rem 0; border-top: 1px solid #e5e7eb; }
+    </style>
 </head>
 <body>
     {% include 'navbar.html.twig' %}
 
-    <main>
-        <h1>Bienvenue sur l'index</h1>
-        <p>Contenu de ma page...</p>
-    </main>
+    <div class="main-container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="welcome-title">Bienvenue sur l'application web de placement aléatoire.</h1>
 
+                <p class="welcome-text">
+                    Elle vous permet de réaliser vos placements pour les contrôles, en fonction de
+                    la matière, la promotion, la salle, la durée, la date et l'heure.
+                </p>
+                <p class="welcome-text">
+                    Grâce à des outils simples, vous pourrez personnaliser vos placements comme vous le souhaitez.
+                </p>
+
+                <div class="cta-wrapper">
+                    <a href="index.php?p=util_placement" class="btn-cta">Cliquer ici pour commencer votre placement</a>
+                </div>
+
+                <div class="footer-credits">
+                    Réalisé en 2026 au Département Informatique de l'IUT de Metz, dans le cadre de la SAÉ (semestre 4)<br>
+                    par Mikail Tok, Fatih Topal, Simon Feistauer, Lilian Schou. Projet encadré par M. Laroche.
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

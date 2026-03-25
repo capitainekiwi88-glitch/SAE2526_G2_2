@@ -1,4 +1,12 @@
 <?php
+$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if ($requestUri !== '/' && $requestUri !== '/index.php' && !file_exists(__DIR__ . $requestUri)) {
+    http_response_code(404);
+    require_once __DIR__ . '/../vendor/autoload.php';
+    $twig = new \Twig\Environment(new \Twig\Loader\FilesystemLoader(__DIR__ . '/../templates'), ['cache' => false]);
+    echo $twig->render('404.html.twig', []);
+    exit;
+}
 require_once __DIR__ . '/../vendor/autoload.php';
 use App\Modele\DAO\EnseignantDAO;
 
@@ -160,6 +168,64 @@ function placementDefaultState(): array
         'form_error' => '',
         'next_combination_id' => 1,
     ];
+}
+
+function placementSaveToDB(array &$state): int
+{
+    $pdo = \App\Modele\DAO\Connexion::getInstance();
+    $exam = $state['exam'];
+    $combinations = $state['combinations'];
+    $rooms = $state['placements']['rooms'];
+
+    $matiereLabels = array_unique(array_column($combinations, 'matiere_label'));
+    $nomDevoir = implode(' / ', $matiereLabels);
+
+    $dateDevoir = $exam['date'];
+    $heureDevoir = ($exam['start_hour'] ?? '08') . ':' . ($exam['start_minute'] ?? '00') . ':00';
+    $dureeDevoir = ($exam['duration_hour'] ?? '02') . ':' . ($exam['duration_minute'] ?? '00') . ':00';
+
+    $stmt = $pdo->prepare(
+        "INSERT INTO devoir (nom_devoir, date_devoir, heure_devoir, duree_devoir)
+         VALUES (:nom, :date, :heure, :duree)"
+    );
+    $stmt->execute([
+        ':nom' => $nomDevoir,
+        ':date' => $dateDevoir,
+        ':heure' => $heureDevoir,
+        ':duree' => $dureeDevoir,
+    ]);
+    $idDevoir = (int) $pdo->lastInsertId();
+
+    $dgDao = new \App\Modele\DAO\DevoirGroupeDAO();
+    $dpDao = new \App\Modele\DAO\DevoirPromoDAO();
+
+    foreach ($combinations as $c) {
+        $groupId = (int) $c['group_id'];
+        $salleId = (int) $c['salle_id'];
+        $matiereId = (int) $c['matiere_id'];
+
+        if ($groupId > 0) {
+            $dg = new \App\Modele\Entity\DevoirGroupe($salleId, $idDevoir, $groupId, $matiereId);
+            $dgDao->insert($dg);
+        } else {
+            $dp = new \App\Modele\Entity\DevoirPromo($salleId, $idDevoir, (int) $c['promo_id'], $matiereId);
+            $dpDao->insert($dp);
+        }
+    }
+
+    $placementDao = new \App\Modele\DAO\PlacementDAO();
+    foreach ($rooms as $room) {
+        $salleId = (int) $room['id'];
+        foreach ($room['assignments'] as $seatKey => $student) {
+            if ($student === null) continue;
+            $parts = explode('-', $seatKey);
+            $placeX = (int) $parts[0];
+            $placeY = (int) $parts[1];
+            $placementDao->insert((int) $student['id'], $idDevoir, $salleId, $placeX, $placeY);
+        }
+    }
+
+    return $idDevoir;
 }
 
 function placementResetSetupForm(array &$state): void
@@ -909,6 +975,7 @@ switch ($page) {
             }
 
             if ($action === 'go_to_exports' && !empty($state['placements']['rooms'])) {
+                $state['devoir_id'] = placementSaveToDB($state);
                 $state['current_stage'] = 3;
             }
 
@@ -932,6 +999,7 @@ switch ($page) {
             'student_counts' => placementStudentCountMap($data['promotions'], $data['groupes']),
             'combinations' => placementCombinationsForView($state['combinations'], $data['salles']),
             'placements' => $state['placements'],
+            'devoir_id' => $state['devoir_id'] ?? null,
         ]);
         break;
     case 'gest_mat':
@@ -1053,9 +1121,15 @@ switch ($page) {
             ]);
         }
         break;
-    default:
-        echo $twig->render('login.html.twig', [
-            'nom_projet' => 'Gestion de Placement'
+    case 'home':
+        echo $twig->render('index.html.twig', [
+            'nom_projet' => 'Gestion de Placement',
+            'etudiants' => ['Alice', 'Bob', 'Charlie'],
+            'message' => 'Ton installation Twig est un succès !'
         ]);
+        break;
+    default:
+        http_response_code(404);
+        echo $twig->render('404.html.twig', []);
         break;
 }

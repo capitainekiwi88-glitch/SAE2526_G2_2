@@ -16,7 +16,9 @@
                     {% endif %}
                 </div>
                 <div class="export-links">
-                    <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=room_list&room={{ room.id }}">Plan pour {{ room.name }}</a>
+                    <a class="btn primary" target="_blank" href="export_pdf.php?devoir={{ devoir_id }}&varD=1&room={{ room.id }}">Liste par Salle</a>
+                    <a class="btn primary" target="_blank" href="export_pdf.php?devoir={{ devoir_id }}&varD=2&room={{ room.id }}">Feuille d'Émargement</a>
+                    <a class="btn primary" target="_blank" href="export_pdf_salle.php?devoir={{ devoir_id }}&room={{ room.id }}">Plan de Salle</a>
                 </div>
             </article>
         {% endfor %}
@@ -29,13 +31,14 @@
                     <span>Toutes salles confondues</span>
                 </div>
                 <div class="export-links">
-                    <a class="btn primary" target="_blank" href="index.php?p=placement_export&type=promo_list&promo={{ promo.id }}">Plans pour toutes les salles</a>
+                    <a class="btn primary" target="_blank" href="export_pdf.php?devoir={{ devoir_id }}&varD=3&promo={{ promo.id }}">Liste par Promotion</a>
                 </div>
             </article>
         {% endfor %}
     </div>
 
-    <div class="stage-footer" style="justify-content:flex-start;">
+    <div class="stage-footer" style="justify-content:flex-start; gap: 10px;">
         <form method="post"><button class="btn primary" type="submit" name="action" value="go_to_placement"> <-- Retour à l'étape précédente</button></form>
+        <a class="btn primary" href="export_pdf_ens.php" target="_blank">Liste Enseignants</a>
     </div>
 </section>

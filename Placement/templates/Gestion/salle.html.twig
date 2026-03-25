@@ -2,137 +2,193 @@
 <html lang="fr">
 <head>
 	<meta charset="UTF-8">
-	<title>Cr&eacute;ation salle</title>
-	<link rel="stylesheet" type="text/css" href="css/s_stage1.css">
-	<link rel="stylesheet" type="text/css" href="css/s_stage3.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Création salle</title>
 	<style>
-		.salle-wrapper { display: block; width: 1010px; margin: auto; margin-top: 33px; font-family: "Lucida Grande", Arial; }
-		.titrecontenu { height: 50px; width: 1010px; background: gray; border-top-right-radius: 6px; border-top-left-radius: 6px; color: white; line-height: 50px; font-size: 24px; font-weight: bold; text-align: center; }
-		.contenu { width: 1010px; background: #e5e5e5; padding-top: 30px; padding-bottom: 30px; border-bottom-right-radius: 6px; border-bottom-left-radius: 6px; margin-bottom: 33px; text-align: center; }
-		.bureau { background: #AAA; width: 100px; height: 30px; line-height: 30px; display: block; color: white; border-radius: 8px; margin: auto; }
-		.tooltip { font-size: 11px; color: gray; display: none; }
-		#TAB1 { border-spacing: 4px; margin: auto; }
-		#TAB1 td { width: 25px; height: 20px; cursor: pointer; }
-		#TAB1 td:hover { background: gray; }
-		.placeOk { background: #BBB; }
-		.placeHandi { background: #2C73C4; }
+		body { font-family: Arial, Helvetica, sans-serif; background-color: #f3f4f6; color: #111827; margin: 0; padding: 0; }
+		.main-container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+		.card { background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #d1d5db; margin-bottom: 1.5rem; overflow: hidden; }
+		.card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #d1d5db; display: flex; justify-content: space-between; align-items: center; }
+		.card-title { font-size: 1.25rem; font-weight: bold; margin: 0; }
+		.card-body { padding: 1.5rem; }
+
+		.steps-bar { display: flex; gap: 0; margin-bottom: 1.5rem; border-radius: 0.5rem; overflow: hidden; border: 1px solid #d1d5db; }
+		.step-item { flex: 1; text-align: center; padding: 0.6rem 0.5rem; font-size: 0.82rem; font-weight: 600; background: #e5e7eb; color: #6b7280; transition: background 0.2s, color 0.2s; }
+		.step-item.active { background: #2563eb; color: #fff; }
+		.step-item.done { background: #dbeafe; color: #1d4ed8; }
+
+		.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+		.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+		.form-group.full { grid-column: 1 / -1; }
+		.form-group label { font-size: 0.82rem; font-weight: 600; color: #374151; }
+		.form-control { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.65rem; outline: none; box-sizing: border-box; width: 100%; font: inherit; font-size: 0.9rem; transition: border-color 0.15s; }
+		.form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.12); }
+		.form-control.invalid { border-color: #ef4444; }
+		.field-error { font-size: 0.75rem; color: #ef4444; display: none; }
+		.field-error.visible { display: block; }
+
+		.btn { display: inline-flex; align-items: center; justify-content: center; font-weight: 600; padding: 0.55rem 1.2rem; border-radius: 0.5rem; cursor: pointer; border: none; font-size: 0.875rem; transition: 0.2s; white-space: nowrap; }
+		.btn-primary { background-color: #2563eb; color: #ffffff; }
+		.btn-primary:hover { background-color: #1d4ed8; }
+		.btn-secondary { background-color: #e5e7eb; color: #1f2937; }
+		.btn-secondary:hover { background-color: #d1d5db; }
+		.btn-success { background-color: #16a34a; color: #ffffff; }
+		.btn-success:hover { background-color: #15803d; }
+		.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+		.btn-row { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 0.5rem; }
+
+		.stage-section { display: none; }
+		.stage-section.active { display: block; }
+
+		.stage-title { font-size: 1rem; font-weight: 700; margin: 0 0 1rem 0; color: #111827; }
+
+		.grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+		#TAB2 { border-spacing: 4px; }
+		#TAB1, #TAB1_S3, #TAB1_S4 { border-spacing: 4px; }
+		#TAB1 td, #TAB1_S3 td, #TAB1_S4 td { width: 26px; height: 22px; border-radius: 3px; cursor: pointer; transition: background 0.1s; }
+		.placeOk { background: #94a3b8; }
+		.placeHandi { background: #3b82f6; }
 		.couloir { background: transparent; }
 		.couloir:hover { background: transparent !important; }
-		.placeInex { background: transparent; border: dashed white 2px; }
-		#btnbef, #btnnext, #btnsave { width: auto; height: auto; }
+		.placeInex { background: transparent; border: 2px dashed #cbd5e1; }
+		#TAB1 td:hover, #TAB1_S3 td:hover { background: #64748b; }
+		.couloir:hover { background: transparent !important; }
+
+		.td2 { width: 26px; height: 22px; background: transparent; text-align: center; }
+		.td2:hover { background: transparent; }
+		.td2 a { text-decoration: none; color: #9ca3af; font-weight: 700; font-size: 1.1rem; }
+		.td2 a:hover { color: #2563eb; }
+
+		.bureau-label { background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.4rem 1.5rem; color: #6b7280; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+		.radio-group { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; justify-content: center; }
+		.radio-group label { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; font-weight: 500; color: #374151; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 0.4rem; border: 1px solid #d1d5db; transition: 0.15s; }
+		.radio-group label:has(input:checked) { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+		.radio-group input[type="radio"] { margin: 0; }
+
+		.recap-info { text-align: center; margin-bottom: 1rem; }
+		.recap-info h3 { font-size: 1.1rem; margin: 0 0 0.3rem; }
+		.recap-info p { margin: 0; color: #6b7280; font-size: 0.9rem; }
+		.recap-info strong { color: #111827; }
 	</style>
 </head>
 <body>
 
 {% include 'navbar.html.twig' %}
 
-<div class="salle-wrapper">
-<!-- #################### TITRE PRINCIPAL ################### -->
-<div class="titrecontenu">Cr&eacute;ation salle</div>
+<div class="main-container">
+	<div class="card">
+		<div class="card-header">
+			<h2 class="card-title">Création d'une salle</h2>
+		</div>
+		<div class="card-body">
 
-<!-- ##################### CONTENU PAGE ##################### -->
-<div class="contenu">
+			<div class="steps-bar" id="steps-bar">
+				<div class="step-item active" data-step="1">1. Informations</div>
+				<div class="step-item" data-step="2">2. Couloirs</div>
+				<div class="step-item" data-step="3">3. Places</div>
+				<div class="step-item" data-step="4">4. Récapitulatif</div>
+			</div>
 
-	<!-- ======================== ETAPE 1 ======================== -->
-	<div id="stage1">
-		<center><h1>&Eacute;tape 1 : Informations salle</h1></center>
+			<!-- ETAPE 1 -->
+			<div id="stage1" class="stage-section active">
+				<p class="stage-title">Informations de la salle</p>
+				<div class="form-grid">
+					<div class="form-group">
+						<label for="nomSalle">Nom</label>
+						<input id="nomSalle" class="form-control" type="text" placeholder="Ex: E36">
+						<span class="field-error" id="err-nom">Un nom ne peut pas faire moins de 2 caractères.</span>
+					</div>
+					<div class="form-group">
+						<label for="batSalle">Bâtiment</label>
+						<input id="batSalle" class="form-control" type="text" placeholder="Ex: Bâtiment E">
+						<span class="field-error" id="err-bat">Aucun bâtiment n'est renseigné.</span>
+					</div>
+					<div class="form-group">
+						<label for="dptSalle">Département</label>
+						<input id="dptSalle" class="form-control" type="text" placeholder="Ex: Informatique">
+						<span class="field-error" id="err-dpt">Aucun département n'est renseigné.</span>
+					</div>
+					<div class="form-group">
+						<label for="etageSalle">Étage</label>
+						<select id="etageSalle" class="form-control">
+							<option value="A">-- Sélectionner --</option>
+							<option value="0">RDC</option>
+							<option value="1">1er</option>
+							<option value="2">2ème</option>
+							<option value="3">3ème</option>
+							<option value="4">4ème</option>
+						</select>
+						<span class="field-error" id="err-etage">Aucun étage n'est sélectionné.</span>
+					</div>
+					<div class="form-group">
+						<label for="nbRang">Nombre de rangs</label>
+						<input id="nbRang" class="form-control" type="number" min="2" max="29" placeholder="2 - 29">
+						<span class="field-error" id="err-rang">Le nombre de rangs doit être compris entre 2 et 29.</span>
+					</div>
+					<div class="form-group">
+						<label for="nbCol">Nombre de colonnes</label>
+						<input id="nbCol" class="form-control" type="number" min="2" max="29" placeholder="2 - 29">
+						<span class="field-error" id="err-col">Le nombre de colonnes doit être compris entre 2 et 29.</span>
+					</div>
+				</div>
+			</div>
 
-		<label for="nomSalle">Nom </label><input id="nomSalle" class="correct" type="text" value="">
-		<span class="tooltip"> Un nom ne peut pas faire moins de 2 caract&egrave;res.</span><br>
+			<!-- ETAPE 2 -->
+			<div id="stage2" class="stage-section">
+				<p class="stage-title">Structure des couloirs — <span id="titreStage2"></span></p>
+				<div class="grid-wrapper">
+					<table id="TAB2"><tr id="btnVertRow"></tr></table>
+					<table id="TAB1"></table>
+					<div class="bureau-label">Bureau</div>
+				</div>
+			</div>
 
-		<label for="batSalle">B&acirc;timent</label>
-		<input id="batSalle" class="correct" type="text" value="">
-		<span class="tooltip"> Aucun b&acirc;timent n'est renseign&eacute;.</span>
+			<!-- ETAPE 3 -->
+			<div id="stage3" class="stage-section">
+				<p class="stage-title">Modélisation des places</p>
+				<div class="radio-group">
+					<label><input type="radio" name="choixEtat" id="delPlace" checked> Supprimer place</label>
+					<label><input type="radio" name="choixEtat" id="addPlace"> Ajouter place</label>
+					<label><input type="radio" name="choixEtat" id="handiPlace"> Place handicapé</label>
+				</div>
+				<div class="grid-wrapper">
+					<table id="TAB1_S3"></table>
+					<div class="bureau-label">Bureau</div>
+				</div>
+			</div>
 
-		<label for="dptSalle">D&eacute;partement</label>
-		<input id="dptSalle" class="correct" type="text" value="">
-		<span class="tooltip"> Aucun d&eacute;partement n'est renseign&eacute;.</span><br>
+			<!-- ETAPE 4 -->
+			<div id="stage4" class="stage-section">
+				<p class="stage-title">Récapitulatif</p>
+				<div class="recap-info">
+					<h3 id="recap_nom"></h3>
+					<p id="recap_places"></p>
+				</div>
+				<div class="grid-wrapper">
+					<table id="TAB1_S4"></table>
+					<div class="bureau-label">Bureau</div>
+				</div>
+			</div>
 
-		<label for="etageSalle">&Eacute;tage</label>
-		<select id="etageSalle" class="correct">
-			<option value="A">&Eacute;tage</option>
-			<option value="0">RDC</option>
-			<option value="1">1er</option>
-			<option value="2">2&egrave;me</option>
-			<option value="3">3&egrave;me</option>
-			<option value="4">4&egrave;me</option>
-		</select>
-		<span class="tooltip"> Aucun &eacute;tage n'est s&eacute;lectionn&eacute;.</span><br>
+			<!-- NAVIGATION -->
+			<div class="btn-row">
+				<button type="button" id="btnbef" class="btn btn-secondary" style="visibility:hidden;">Précédent</button>
+				<div>
+					<button type="button" id="btnsave" class="btn btn-success" style="display:none;">Enregistrer</button>
+					<button type="button" id="btnnext" class="btn btn-primary">Suivant</button>
+				</div>
+			</div>
 
-		<label for="nbRang">Nombre de rangs </label><input id="nbRang" class="correct" type="text" value="">
-		<span class="tooltip"> Le nombre de rang doit &ecirc;tre compris entre 2 et 29.</span><br>
-
-		<label for="nbCol">Nombre de colonnes </label><input id="nbCol" class="correct" type="text" value="">
-		<span class="tooltip"> Le nombre de colonne doit &ecirc;tre compris entre 2 et 29.</span>
+		</div>
 	</div>
-
-	<!-- ======================== ETAPE 2 ======================== -->
-	<div id="stage2" style="display:none">
-		<center><h1>&Eacute;tape 2 : Structure</h1></center>
-		<center><h3 id="titreStage2"></h3></center>
-
-		<!-- Boutons + pour couloirs verticaux -->
-		<center>
-			<table id="TAB2"><tr id="btnVertRow"></tr></table>
-		</center>
-
-		<!-- Grille + boutons horizontaux -->
-		<center>
-			<table id="TAB1"></table>
-		</center>
-
-		<br><center><div class="bureau">BUREAU</div></center>
-	</div>
-
-	<!-- ======================== ETAPE 3 ======================== -->
-	<div id="stage3" style="display:none">
-		<center><h1>&Eacute;tape 3 : Mod&eacute;lisation places</h1></center>
-
-		<center>
-			<form>
-				<input type="radio" name="choixEtat" id="delPlace" checked="true">Supprimer place
-				<input type="radio" name="choixEtat" id="addPlace">Ajouter place
-				<input type="radio" name="choixEtat" id="handiPlace">Place handicap&eacute;
-			</form>
-
-			<table id="TAB1_S3"></table>
-		</center>
-
-		<br><center><div class="bureau">BUREAU</div></center>
-	</div>
-
-	<!-- ======================== ETAPE 4 ======================== -->
-	<div id="stage4" style="display:none">
-		<center><h1>&Eacute;tape 4 : R&eacute;capitulatif</h1></center>
-
-		<center>
-			<h3 id="recap_nom"></h3>
-			<p id="recap_places"></p>
-			<table id="TAB1_S4"></table>
-		</center>
-
-		<br><center><div class="bureau">BUREAU</div></center>
-	</div>
-
-	<!-- ################ Boutons navigation ################ -->
-	<br>
-	<button type="button" id="btnbef" style="display:none; float:left; margin-left:20px;">Pr&eacute;c&eacute;dent</button>
-	<button type="button" id="btnnext" style="float:right; margin-right:20px;">Suivant</button>
-	<button type="button" id="btnsave" style="display:none; float:right; margin-right:20px;">Enregistrer</button>
-
 </div>
-</div>
 
-<!-- ################## JAVASCRIPT ################### -->
 <script>
-// ##################### Conversion string <-> tableau #####################
-function arrayToDonnee(tab)
-{
+function arrayToDonnee(tab) {
 	var text = '';
-	for(var i = 0; i < tab.length; i++)
-	{
-		for(var j = 0; j < tab[i].length; j++)
-		{
+	for (var i = 0; i < tab.length; i++) {
+		for (var j = 0; j < tab[i].length; j++) {
 			text += tab[i][j];
 		}
 		text += '-';
@@ -140,23 +196,19 @@ function arrayToDonnee(tab)
 	return text;
 }
 
-function donneeToArray(donnee)
-{
+function donneeToArray(donnee) {
 	var tab = [];
 	var rows = donnee.split('-');
-	for(var i = 0; i < rows.length; i++)
-	{
-		if(rows[i] == '') continue;
+	for (var i = 0; i < rows.length; i++) {
+		if (rows[i] == '') continue;
 		tab[i] = [];
-		for(var j = 0; j < rows[i].length; j++)
-		{
+		for (var j = 0; j < rows[i].length; j++) {
 			tab[i][j] = parseInt(rows[i][j]);
 		}
 	}
 	return tab;
 }
 
-// ##################### Variables globales #####################
 var nomSalle = '';
 var batSalle = '';
 var dptSalle = '';
@@ -166,60 +218,58 @@ var rangSalle = 0;
 var colSalle = 0;
 var currentStage = 'stage1';
 
-// ##################### References boutons #####################
 var btnbef = document.getElementById('btnbef');
 var btnnext = document.getElementById('btnnext');
 var btnsave = document.getElementById('btnsave');
 
-// ##################### Navigation #####################
-function affBtn()
-{
-	if(currentStage == 'stage1')
-	{
-		btnbef.style.display = 'none';
+function updateStepsBar() {
+	var stageNum = parseInt(currentStage.replace('stage', ''));
+	document.querySelectorAll('.step-item').forEach(function(el) {
+		var step = parseInt(el.getAttribute('data-step'));
+		el.classList.remove('active', 'done');
+		if (step === stageNum) el.classList.add('active');
+		else if (step < stageNum) el.classList.add('done');
+	});
+}
+
+function affBtn() {
+	if (currentStage == 'stage1') {
+		btnbef.style.visibility = 'hidden';
 		btnnext.style.display = '';
 		btnsave.style.display = 'none';
-	}
-	else if(currentStage == 'stage4')
-	{
-		btnbef.style.display = '';
+	} else if (currentStage == 'stage4') {
+		btnbef.style.visibility = 'visible';
 		btnnext.style.display = 'none';
 		btnsave.style.display = '';
-	}
-	else
-	{
-		btnbef.style.display = '';
+	} else {
+		btnbef.style.visibility = 'visible';
 		btnnext.style.display = '';
 		btnsave.style.display = 'none';
 	}
 }
 
-function afficherStage(stage)
-{
-	document.getElementById('stage1').style.display = 'none';
-	document.getElementById('stage2').style.display = 'none';
-	document.getElementById('stage3').style.display = 'none';
-	document.getElementById('stage4').style.display = 'none';
-	document.getElementById(stage).style.display = '';
+function afficherStage(stage) {
+	document.querySelectorAll('.stage-section').forEach(function(el) {
+		el.classList.remove('active');
+	});
+	document.getElementById(stage).classList.add('active');
 	currentStage = stage;
 	affBtn();
+	updateStepsBar();
 }
 
-// ##################### Validation etape 1 #####################
-function getTooltip(element)
-{
-	while(element = element.nextSibling)
-	{
-		if(element.className === 'tooltip')
-		{
-			return element;
-		}
-	}
-	return false;
+function showError(id, show) {
+	var el = document.getElementById(id);
+	if (show) el.classList.add('visible');
+	else el.classList.remove('visible');
 }
 
-function checkChamp()
-{
+function setInvalid(el, invalid) {
+	if (invalid) el.classList.add('invalid');
+	else el.classList.remove('invalid');
+}
+
+function checkChamp() {
 	var nomEl = document.getElementById('nomSalle');
 	var batEl = document.getElementById('batSalle');
 	var dptEl = document.getElementById('dptSalle');
@@ -228,96 +278,34 @@ function checkChamp()
 	var colEl = document.getElementById('nbCol');
 	var ok = 0;
 
-	// ################ Test nom ################
-	var tooltip = getTooltip(nomEl);
-	if(nomEl.value.length < 2)
-	{
-		nomEl.className = 'incorrect';
-		tooltip.style.display = 'inline-block';
-	}
-	else
-	{
-		nomEl.className = 'correct';
-		tooltip.style.display = 'none';
-		ok++;
-	}
+	var nomOk = nomEl.value.length >= 2;
+	setInvalid(nomEl, !nomOk); showError('err-nom', !nomOk);
+	if (nomOk) ok++;
 
-	// ################ Test batiment ################
-	tooltip = getTooltip(batEl);
-	if(batEl.value.length < 1)
-	{
-		batEl.className = 'incorrect';
-		tooltip.style.display = 'inline-block';
-	}
-	else
-	{
-		batEl.className = 'correct';
-		tooltip.style.display = 'none';
-		ok++;
-	}
+	var batOk = batEl.value.length >= 1;
+	setInvalid(batEl, !batOk); showError('err-bat', !batOk);
+	if (batOk) ok++;
 
-	// ################ Test departement ################
-	tooltip = getTooltip(dptEl);
-	if(dptEl.value.length < 1)
-	{
-		dptEl.className = 'incorrect';
-		tooltip.style.display = 'inline-block';
-	}
-	else
-	{
-		dptEl.className = 'correct';
-		tooltip.style.display = 'none';
-		ok++;
-	}
+	var dptOk = dptEl.value.length >= 1;
+	setInvalid(dptEl, !dptOk); showError('err-dpt', !dptOk);
+	if (dptOk) ok++;
 
-	// ################ Test etage ################
-	tooltip = getTooltip(etageEl);
-	if(etageEl.value == 'A')
-	{
-		etageEl.className = 'incorrect';
-		tooltip.style.display = 'inline-block';
-	}
-	else
-	{
-		etageEl.className = 'correct';
-		tooltip.style.display = 'none';
-		ok++;
-	}
+	var etageOk = etageEl.value != 'A';
+	setInvalid(etageEl, !etageOk); showError('err-etage', !etageOk);
+	if (etageOk) ok++;
 
-	// ################ Test nbRang ################
-	tooltip = getTooltip(rangEl);
-	if(parseInt(rangEl.value) > 1 && parseInt(rangEl.value) < 30)
-	{
-		rangEl.className = 'correct';
-		tooltip.style.display = 'none';
-		ok++;
-	}
-	else
-	{
-		rangEl.className = 'incorrect';
-		tooltip.style.display = 'inline-block';
-	}
+	var rangOk = parseInt(rangEl.value) > 1 && parseInt(rangEl.value) < 30;
+	setInvalid(rangEl, !rangOk); showError('err-rang', !rangOk);
+	if (rangOk) ok++;
 
-	// ################ Test nbCol ################
-	tooltip = getTooltip(colEl);
-	if(parseInt(colEl.value) > 1 && parseInt(colEl.value) < 30)
-	{
-		colEl.className = 'correct';
-		tooltip.style.display = 'none';
-		ok++;
-	}
-	else
-	{
-		colEl.className = 'incorrect';
-		tooltip.style.display = 'inline-block';
-	}
+	var colOk = parseInt(colEl.value) > 1 && parseInt(colEl.value) < 30;
+	setInvalid(colEl, !colOk); showError('err-col', !colOk);
+	if (colOk) ok++;
 
 	return ok;
 }
 
-// ##################### Etape 2 : Structure couloirs #####################
-function initStructSalle()
-{
+function initStructSalle() {
 	nomSalle = document.getElementById('nomSalle').value;
 	batSalle = document.getElementById('batSalle').value;
 	dptSalle = document.getElementById('dptSalle').value;
@@ -326,25 +314,19 @@ function initStructSalle()
 	colSalle = parseInt(document.getElementById('nbCol').value);
 
 	structSalle = [];
-	for(var i = 0; i < rangSalle; i++)
-	{
+	for (var i = 0; i < rangSalle; i++) {
 		structSalle[i] = [];
-		for(var j = 0; j < colSalle; j++)
-		{
+		for (var j = 0; j < colSalle; j++) {
 			structSalle[i][j] = 1;
 		}
 	}
 }
 
-function addCouloirVertical(idCouloir)
-{
+function addCouloirVertical(idCouloir) {
 	idCouloir += 1;
 	colSalle += 1;
-
-	for(var i = 0; i < rangSalle; i++)
-	{
-		for(var j = colSalle - 1; j > idCouloir; j--)
-		{
+	for (var i = 0; i < rangSalle; i++) {
+		for (var j = colSalle - 1; j > idCouloir; j--) {
 			structSalle[i][j] = structSalle[i][j - 1];
 		}
 		structSalle[i][idCouloir] = 0;
@@ -352,31 +334,24 @@ function addCouloirVertical(idCouloir)
 	afficherStage2();
 }
 
-function addCouloirHorizontal(idCouloir)
-{
+function addCouloirHorizontal(idCouloir) {
 	idCouloir += 1;
 	rangSalle += 1;
-
-	for(var i = 0; i < colSalle; i++)
-	{
-		for(var j = rangSalle - 1; j > idCouloir; j--)
-		{
-			if(!structSalle[j]) structSalle[j] = [];
-			if(!structSalle[j - 1]) structSalle[j - 1] = [];
+	for (var i = 0; i < colSalle; i++) {
+		for (var j = rangSalle - 1; j > idCouloir; j--) {
+			if (!structSalle[j]) structSalle[j] = [];
+			if (!structSalle[j - 1]) structSalle[j - 1] = [];
 			structSalle[j][i] = structSalle[j - 1][i];
 		}
-		if(!structSalle[idCouloir]) structSalle[idCouloir] = [];
+		if (!structSalle[idCouloir]) structSalle[idCouloir] = [];
 		structSalle[idCouloir][i] = 0;
 	}
 	afficherStage2();
 }
 
-function delCouloirVertical(idCouloir)
-{
-	for(var i = 0; i < rangSalle; i++)
-	{
-		for(var j = idCouloir; j < colSalle - 1; j++)
-		{
+function delCouloirVertical(idCouloir) {
+	for (var i = 0; i < rangSalle; i++) {
+		for (var j = idCouloir; j < colSalle - 1; j++) {
 			structSalle[i][j] = structSalle[i][j + 1];
 		}
 		structSalle[i].splice(colSalle - 1, 1);
@@ -385,12 +360,9 @@ function delCouloirVertical(idCouloir)
 	afficherStage2();
 }
 
-function delCouloirHorizontal(idCouloir)
-{
-	for(var i = 0; i < colSalle; i++)
-	{
-		for(var j = idCouloir; j < rangSalle - 1; j++)
-		{
+function delCouloirHorizontal(idCouloir) {
+	for (var i = 0; i < colSalle; i++) {
+		for (var j = idCouloir; j < rangSalle - 1; j++) {
 			structSalle[j][i] = structSalle[j + 1][i];
 		}
 	}
@@ -399,69 +371,46 @@ function delCouloirHorizontal(idCouloir)
 	afficherStage2();
 }
 
-function afficherStage2()
-{
-	document.getElementById('titreStage2').textContent = 'Nom salle : ' + nomSalle;
+function afficherStage2() {
+	document.getElementById('titreStage2').textContent = nomSalle;
 
-	// Boutons verticaux (au dessus de la grille)
 	var btnRow = '';
-	for(var i = 0; i < colSalle + 1; i++)
-	{
-		if(i == 0 || i == colSalle)
-		{
+	for (var i = 0; i < colSalle + 1; i++) {
+		if (i == 0 || i == colSalle) {
 			btnRow += '<td class="td2"></td>';
-		}
-		else
-		{
-			if(structSalle[0][i - 1] == 0)
-			{
-				btnRow += '<td class="td2"><a href="#" onclick="delCouloirVertical(' + (i - 1) + '); return false;" id="link">-</a></td>';
-			}
-			else
-			{
-				btnRow += '<td class="td2"><a href="#" onclick="addCouloirVertical(' + (i - 1) + '); return false;" id="link">+</a></td>';
+		} else {
+			if (structSalle[0][i - 1] == 0) {
+				btnRow += '<td class="td2"><a href="#" onclick="delCouloirVertical(' + (i - 1) + '); return false;">-</a></td>';
+			} else {
+				btnRow += '<td class="td2"><a href="#" onclick="addCouloirVertical(' + (i - 1) + '); return false;">+</a></td>';
 			}
 		}
 	}
 	document.getElementById('btnVertRow').innerHTML = btnRow;
 
-	// Grille avec boutons horizontaux
 	var html = '';
-	for(var i = 0; i < rangSalle; i++)
-	{
-		html += '<tr id="' + i + '">';
-		for(var j = 0; j < colSalle; j++)
-		{
+	for (var i = 0; i < rangSalle; i++) {
+		html += '<tr>';
+		for (var j = 0; j < colSalle; j++) {
 			html += '<td class="' + modifClasse(structSalle[i][j]) + '" id="' + i + '-' + j + '"></td>';
 		}
-
-		// Bouton horizontal a droite
-		if(i < rangSalle - 1)
-		{
-			if(structSalle[i][0] == 0)
-			{
-				html += '<td class="td2"><a href="#" onclick="delCouloirHorizontal(' + i + '); return false;" id="link">-</a></td>';
-			}
-			else
-			{
-				html += '<td class="td2"><a href="#" onclick="addCouloirHorizontal(' + i + '); return false;" id="link">+</a></td>';
+		if (i < rangSalle - 1) {
+			if (structSalle[i][0] == 0) {
+				html += '<td class="td2"><a href="#" onclick="delCouloirHorizontal(' + i + '); return false;">-</a></td>';
+			} else {
+				html += '<td class="td2"><a href="#" onclick="addCouloirHorizontal(' + i + '); return false;">+</a></td>';
 			}
 		}
-
 		html += '</tr>';
 	}
 	document.getElementById('TAB1').innerHTML = html;
 }
 
-// ##################### Etape 3 : Modelisation places #####################
-function afficherStage3()
-{
+function afficherStage3() {
 	var html = '';
-	for(var i = 0; i < rangSalle; i++)
-	{
-		html += '<tr id="' + i + '">';
-		for(var j = 0; j < colSalle; j++)
-		{
+	for (var i = 0; i < rangSalle; i++) {
+		html += '<tr>';
+		for (var j = 0; j < colSalle; j++) {
 			html += '<td class="' + modifClasse(structSalle[i][j]) + '" id="s3-' + i + '-' + j + '" onclick="modifEtat(this.id, this.className)"></td>';
 		}
 		html += '</tr>';
@@ -469,10 +418,8 @@ function afficherStage3()
 	document.getElementById('TAB1_S3').innerHTML = html;
 }
 
-function modifClasse(val)
-{
-	switch(val)
-	{
+function modifClasse(val) {
+	switch (val) {
 		case 0: return 'couloir';
 		case 1: return 'placeOk';
 		case 2: return 'placeHandi';
@@ -481,66 +428,47 @@ function modifClasse(val)
 	}
 }
 
-function modifEtat(id, classe)
-{
-	if(classe == 'couloir') return;
-
+function modifEtat(id, classe) {
+	if (classe == 'couloir') return;
 	var parts = id.replace('s3-', '').split('-');
 	var x = parseInt(parts[0]);
 	var y = parseInt(parts[1]);
-
 	structSalle[x][y] = recupChoix();
-
-	var caseTab = document.getElementById(id);
-	caseTab.className = modifClasse(structSalle[x][y]);
+	document.getElementById(id).className = modifClasse(structSalle[x][y]);
 }
 
-function recupChoix()
-{
-	var delPlace = document.getElementById('delPlace');
-	var addPlace = document.getElementById('addPlace');
-	var handiPlace = document.getElementById('handiPlace');
-
-	if(delPlace.checked) return 3;
-	else if(addPlace.checked) return 1;
-	else if(handiPlace.checked) return 2;
+function recupChoix() {
+	if (document.getElementById('delPlace').checked) return 3;
+	else if (document.getElementById('addPlace').checked) return 1;
+	else if (document.getElementById('handiPlace').checked) return 2;
 }
 
-// ##################### Etape 4 : Recapitulatif #####################
-function comptePlace()
-{
+function comptePlace() {
 	var placeOk = 0;
 	var placeHandi = 0;
-
-	for(var i = 0; i < rangSalle; i++)
-	{
-		for(var j = 0; j < colSalle; j++)
-		{
-			if(structSalle[i][j] == 1) placeOk++;
-			else if(structSalle[i][j] == 2) placeHandi++;
+	for (var i = 0; i < rangSalle; i++) {
+		for (var j = 0; j < colSalle; j++) {
+			if (structSalle[i][j] == 1) placeOk++;
+			else if (structSalle[i][j] == 2) placeHandi++;
 		}
 	}
 	return [placeOk, placeHandi];
 }
 
-function afficherStage4()
-{
+function afficherStage4() {
 	var places = comptePlace();
 	document.getElementById('recap_nom').textContent = nomSalle;
 
 	var txt = places[0] + ' places';
-	if(places[1] > 0)
-	{
-		txt += ' (+ ' + places[1] + ' place(s) "handicape")';
+	if (places[1] > 0) {
+		txt += ' (+ ' + places[1] + ' place(s) handicapé)';
 	}
-	document.getElementById('recap_places').innerHTML = '<b>' + txt + '</b>';
+	document.getElementById('recap_places').innerHTML = '<strong>' + txt + '</strong>';
 
 	var html = '';
-	for(var i = 0; i < rangSalle; i++)
-	{
-		html += '<tr id="' + i + '">';
-		for(var j = 0; j < colSalle; j++)
-		{
+	for (var i = 0; i < rangSalle; i++) {
+		html += '<tr>';
+		for (var j = 0; j < colSalle; j++) {
 			html += '<td class="' + modifClasse(structSalle[i][j]) + '"></td>';
 		}
 		html += '</tr>';
@@ -548,73 +476,56 @@ function afficherStage4()
 	document.getElementById('TAB1_S4').innerHTML = html;
 }
 
-// ##################### Bouton Suivant #####################
-btnnext.addEventListener('click', function(e)
-{
-	switch(currentStage)
-	{
+btnnext.addEventListener('click', function() {
+	switch (currentStage) {
 		case 'stage1':
-			if(parseInt(checkChamp()) == 6)
-			{
+			if (parseInt(checkChamp()) == 6) {
 				initStructSalle();
 				afficherStage2();
 				afficherStage('stage2');
 			}
 			break;
-
 		case 'stage2':
 			afficherStage3();
 			afficherStage('stage3');
 			break;
-
 		case 'stage3':
 			afficherStage4();
 			afficherStage('stage4');
 			break;
-
-		default: break;
 	}
-}, false);
+});
 
-// ##################### Bouton Precedent #####################
-btnbef.addEventListener('click', function(e)
-{
-	switch(currentStage)
-	{
+btnbef.addEventListener('click', function() {
+	switch (currentStage) {
 		case 'stage2':
 			afficherStage('stage1');
 			break;
-
 		case 'stage3':
 			afficherStage2();
 			afficherStage('stage2');
 			break;
-
 		case 'stage4':
 			afficherStage3();
 			afficherStage('stage3');
 			break;
-
-		default: break;
 	}
-}, false);
+});
 
-// ##################### Bouton Enregistrer #####################
-btnsave.addEventListener('click', function(e)
-{
+btnsave.addEventListener('click', function() {
 	var donnee = arrayToDonnee(structSalle);
 	var places = comptePlace();
 
-	alert('Salle "' + nomSalle + '" enregistree !\n\nDonnee (format BDD) :\n' + donnee + '\n\nPlaces : ' + places[0] + ' normales, ' + places[1] + ' handicap');
+	alert('Salle "' + nomSalle + '" enregistrée !\n\nDonnée (format BDD) :\n' + donnee + '\n\nPlaces : ' + places[0] + ' normales, ' + places[1] + ' handicapé');
 	console.log('--- SALLE ENREGISTREE ---');
 	console.log('Nom :', nomSalle);
 	console.log('Batiment :', batSalle);
 	console.log('Departement :', dptSalle);
 	console.log('Etage :', etageSalle);
-	console.log('Donnee (format BDD) :', donnee);
+	console.log('Donnée (format BDD) :', donnee);
 	console.log('structSalle (tableau) :', structSalle);
-	console.log('Places normales :', places[0], '| Handicap :', places[1]);
-}, false);
+	console.log('Places normales :', places[0], '| Handicapé :', places[1]);
+});
 </script>
 </body>
 </html>

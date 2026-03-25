@@ -45,4 +45,23 @@ class PlacementDAO {
         }
         return $list;
     }
+
+    public function insert(int $idEtudiant, int $idDevoir, int $idSalle, int $placeX, int $placeY): bool {
+        $stmt = $this->_db->prepare(
+            "INSERT INTO placement (id_etudiant, id_devoir, id_salle, place_x, place_y)
+             VALUES (:etudiant, :devoir, :salle, :x, :y)"
+        );
+        return $stmt->execute([
+            ':etudiant' => $idEtudiant,
+            ':devoir' => $idDevoir,
+            ':salle' => $idSalle,
+            ':x' => $placeX,
+            ':y' => $placeY,
+        ]);
+    }
+
+    public function deleteByDevoir(int $idDevoir): bool {
+        $stmt = $this->_db->prepare("DELETE FROM placement WHERE id_devoir = :id");
+        return $stmt->execute([':id' => $idDevoir]);
+    }
 }
