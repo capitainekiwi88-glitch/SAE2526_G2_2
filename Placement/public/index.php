@@ -604,6 +604,39 @@ function placementBuildPlacements(array $combinations, array $salles): array
     ];
 }
 
+function placementRerollPlacements(array $placements): array
+{
+    foreach ($placements['rooms'] as &$room) {
+        $students = array_values(array_filter(
+            $room['assignments'] ?? [],
+            static fn($student): bool => $student !== null
+        ));
+
+        shuffle($students);
+
+        $seatKeys = placementSortedSeatKeys($room['assignments'] ?? []);
+        foreach ($seatKeys as $seatKey) {
+            $room['assignments'][$seatKey] = null;
+        }
+
+        foreach ($seatKeys as $seatKey) {
+            if (empty($students)) {
+                break;
+            }
+
+            $room['assignments'][$seatKey] = array_shift($students);
+        }
+
+        $room['student_count'] = count(array_filter(
+            $room['assignments'] ?? [],
+            static fn($student): bool => $student !== null
+        ));
+    }
+    unset($room);
+
+    return $placements;
+}
+
 function placementAddStudentsToRoom(array &$state, int $roomId, array $studentIds): array
 {
     foreach ($state['placements']['rooms'] as &$room) {
@@ -899,7 +932,11 @@ switch ($page) {
             }
 
             if ($action === 'reroll_placements' && !empty($state['combinations'])) {
-                $state['placements'] = placementBuildPlacements($state['combinations'], $data['salles']);
+                if (!empty($state['placements']['rooms'])) {
+                    $state['placements'] = placementRerollPlacements($state['placements']);
+                } else {
+                    $state['placements'] = placementBuildPlacements($state['combinations'], $data['salles']);
+                }
                 $state['current_stage'] = 2;
             }
 
