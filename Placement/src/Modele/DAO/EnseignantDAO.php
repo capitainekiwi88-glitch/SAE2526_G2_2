@@ -7,8 +7,8 @@ use PDO;
 class EnseignantDAO {
     private PDO $_db;
 
-    public function __construct() {
-        $this->_db = Connexion::getInstance();
+    public function __construct(?PDO $pdo = null) {
+        $this->_db = $pdo ?? Connexion::getInstance();
     }
 
     public function getById(int $id): ?Enseignant {
@@ -46,7 +46,6 @@ class EnseignantDAO {
     }
 
     public function insert(Enseignant $e, string $password): bool {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $this->_db->prepare("INSERT INTO enseignant (nom_ens, prenom_ens, sexe, login, admin, pass) VALUES (:nom, :prenom, :sexe, :login, :admin, :password)");
         $res = $stmt->execute([
             ':nom' => $e->getNom(),
@@ -54,7 +53,7 @@ class EnseignantDAO {
             ':sexe' => $e->getSexe(),
             ':login' => $e->getLogin(),
             ':admin' => $e->getAdmin(),
-            ':password' => $hash
+            ':password' => $password
         ]);
 
         if ($res) {
@@ -68,6 +67,27 @@ class EnseignantDAO {
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $data ?: null;
+    }
+
+    public function getEnseignantByLogin(string $login): ?Enseignant {
+        $data = $this->findByLogin($login);
+        if (!$data) return null;
+
+        return new Enseignant(
+            $data['id_ens'],
+            $data['nom_ens'],
+            $data['prenom_ens'],
+            $data['sexe'],
+            $data['login'],
+            $data['admin']
+        );
+    }
+
+    public function verifyPassword(string $login, string $password): bool {
+        $data = $this->findByLogin($login);
+        if (!$data || !isset($data['pass'])) return false;
+
+        return $password === $data['pass'];
     }
 
 

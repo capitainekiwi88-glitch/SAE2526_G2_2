@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil - {{ nom_projet }}</title>
+    <title>{% block title %}Mon Application{% endblock %}</title>
     
-    <link rel="stylesheet" href="/css/s_stage1.css">
+    {% block stylesheets %}
+    {% endblock %}
 </head>
 <body>
     {% include 'navbar.html.twig' %}
 
     <main>
-        <h1>Bienvenue sur l'index</h1>
-        <p>Contenu de ma page...</p>
+        {% block body %}{% endblock %}
     </main>
 
+    {% block javascripts %}{% endblock %}
 </body>
 </html>

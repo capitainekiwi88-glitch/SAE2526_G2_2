@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
+use App\Modele\DAO\EnseignantDAO;
 
 session_start();
-
 function placementDatabase(): ?\PDO
 {
     static $pdo = false;
@@ -1121,11 +1121,30 @@ switch ($page) {
     case 'gest_promo':
         echo $twig->render('Gestion/promotion.html.twig', []);
         break;
+
+
+    case 'login_verify':
+        $login = $_POST['text'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $ensDao = new EnseignantDAO(placementDatabase());
+        $enseignant = $ensDao->getEnseignantByLogin($login);
+        if ($enseignant && $ensDao->verifyPassword($login, $password)) {
+            
+            $_SESSION['user_id'] = $enseignant->getIdEnseignant();
+            $_SESSION['user_nom'] = $enseignant->getNom() . ' ' . $enseignant->getPrenom();
+            
+            header('Location: index.php?p=util_placement');
+            exit;
+        } else {
+            echo $twig->render('login.html.twig', [
+                'error' => 'Identifiant ou mot de passe incorrect.',
+                'nom_projet' => 'Gestion de Placement'
+            ]);
+        }
+        break;
     default:
-        echo $twig->render('index.html.twig', [
-            'nom_projet' => 'Gestion de Placement',
-            'etudiants' => ['Alice', 'Bob', 'Charlie'],
-            'message' => 'Ton installation Twig est un succès !'
+        echo $twig->render('login.html.twig', [
+            'nom_projet' => 'Gestion de Placement'
         ]);
         break;
 }

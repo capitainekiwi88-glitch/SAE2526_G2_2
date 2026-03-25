@@ -67,6 +67,9 @@ class DevoirDAO {
         $stmt = $this->_db->prepare("UPDATE devoir SET nom_devoir = :nom, date_devoir = :date, heure_devoir = :heure, duree_devoir = :duree WHERE id_devoir = :id");
         return $stmt->execute([
             ':nom' => $d->getNom(),
+            ':date' => $d->getDate(),
+            ':heure' => $d->getHeure(),
+            ':duree' => $d->getDuree(),
             ':id'  => $d->getIdDevoir()
         ]);
     }
