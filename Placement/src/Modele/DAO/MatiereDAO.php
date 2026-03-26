@@ -63,4 +63,22 @@ class MatiereDAO {
             ':id' => $m->getIdMatiere()
         ]);
     }
+
+    public function findAllWithPromo(): array
+    {
+        $sql = "SELECT m.id_mat, m.nom_mat, p.id_promo, p.nom_promo, p.annee, d.nom_dpt 
+                FROM matiere m 
+                JOIN promotion p ON m.id_promo = p.id_promo
+                LEFT JOIN departement d ON p.id_dpt = d.id_dpt
+                ORDER BY p.nom_promo, m.nom_mat";
+
+        $stmt = $this->_db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteById(int $id): bool
+    {
+        $stmt = $this->_db->prepare("DELETE FROM matiere WHERE id_mat = :id");
+        return $stmt->execute([':id' => $id]);
+    }
 }

@@ -109,4 +109,9 @@ class EnseignantDAO {
         ]);
     }
 
+    public function deleteById(int $id): bool {
+        $stmt = $this->_db->prepare("DELETE FROM enseignant WHERE id_ens = :id");
+        return $stmt->execute([':id' => $id]);
+    }
+
 }

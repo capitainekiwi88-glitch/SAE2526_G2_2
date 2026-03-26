@@ -1,0 +1,232 @@
+{% include 'navbar.html.twig' %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Étudiants - {{ promotion.nom_promo }}</title>
+    
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; background-color: #f3f4f6; color: #111827; margin: 0; padding: 0; }
+        .main-container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; transition: all 0.3s ease; }
+        
+        .card { background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #d1d5db; margin-bottom: 1.5rem; overflow: hidden; }
+        .card-header { padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; background-color: #ffffff;}
+        .card-title { font-size: 1.5rem; font-weight: bold; margin: 0; color: #1f2937; }
+        .card-subtitle { font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0; }
+        
+        .hidden-form { display: none !important; }
+        .form-control { width: 100%; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem; outline: none; box-sizing: border-box; }
+        .barre-valide { background-color: #f9fafb; padding: 1rem 1.5rem; border-top: 1px solid #d1d5db; display: flex; justify-content: flex-end; gap: 0.75rem; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; border: none; font-size: 0.875rem; transition: 0.2s; white-space: nowrap;}
+        .btn-primary { background-color: #2563eb; color: #ffffff; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-secondary { background-color: #e5e7eb; color: #1f2937; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        
+        .btn-action { background: transparent; padding: 0.5rem; border-radius: 0.375rem; border: none; cursor: pointer; display: inline-flex; }
+        .btn-blue { color: #2563eb; }
+        .btn-red { color: #ef4444; }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: center; border: 2px solid #d1d5db; font-size: 0.95rem; }
+        .data-table th, .data-table td { border: 1px solid #d1d5db; padding: 1rem 0.5rem; }
+        .data-table thead { background-color: #e5e7eb; color: #1f2937; text-transform: uppercase; font-size: 0.85rem; font-weight: bold; }
+
+        .form-flex { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+        .checkbox-group { display: flex; align-items: center; gap: 0.5rem; height: 35px; }
+        .checkbox-group input { width: 1.2rem; height: 1.2rem; accent-color: #2563eb; cursor: pointer; }
+        .checkbox-group label { font-size: 0.9rem; cursor: pointer; }
+        
+        .badge-oui { background-color: #d1fae5; color: #047857; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: bold; font-size: 0.8rem; }
+        .badge-non { background-color: #f3f4f6; color: #6b7280; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: bold; font-size: 0.8rem; }
+
+        /* EFFET MODAL */
+        .is-editing .card-header, .is-editing .form-panel { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+        .is-editing tbody tr { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
+        .is-editing tbody tr.editing-row { opacity: 1; filter: none; background-color: #fff !important; pointer-events: auto; }
+        .editing-row .action-buttons { display: none !important; }
+    </style>
+</head>
+
+<body>
+    <div class="main-container" id="page-wrapper">
+
+        <div style="margin-bottom: 1.5rem;">
+            <a href="index.php?p=gest_promo" class="btn btn-secondary" style="text-decoration: none;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right: 0.5rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                Retour aux promotions
+            </a>
+        </div>
+
+        <div id="form-creer-etudiant" class="card form-panel hidden-form" style="padding:1.5rem;">
+            <h3 class="card-title" style="margin-bottom: 1.5rem; font-size: 1.25rem;">Nouvel Étudiant</h3>
+            <form action="index.php?p=gest_etudiant" method="post" class="form-flex">
+                <input type="hidden" name="id_promo" value="{{ promotion.id_promo }}">
+                
+                <div style="flex:2; min-width: 150px;">
+                    <label style="display:block; font-size:13px; margin-bottom:4px;">Nom :</label>
+                    <input type="text" name="nom" required class="form-control" placeholder="Ex: DUPONT">
+                </div>
+                <div style="flex:2; min-width: 150px;">
+                    <label style="display:block; font-size:13px; margin-bottom:4px;">Prénom :</label>
+                    <input type="text" name="prenom" required class="form-control" placeholder="Ex: Jean">
+                </div>
+                
+                <div style="flex:1; min-width: 100px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="tiers_temps" name="tiers_temps" value="1">
+                        <label for="tiers_temps">Tiers-temps</label>
+                    </div>
+                </div>
+                <div style="flex:1.5; min-width: 120px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="mob_reduite" name="mob_reduite" value="1">
+                        <label for="mob_reduite">Mobilité réduite</label>
+                    </div>
+                </div>
+                
+                <div style="flex:1.5; min-width: 120px;">
+                    <label style="display:block; font-size:13px; margin-bottom:4px;">Groupe :</label>
+                    <select name="id_groupe" class="form-control">
+                        {% for g in groupes %}<option value="{{ g.id_groupe }}">{{ g.nom_groupe }}</option>{% endfor %}
+                    </select>
+                </div>
+                
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" name="ajouter" class="btn btn-primary">Enregistrer</button>
+                    <button type="button" onclick="toggleForm()" class="btn btn-secondary">Annuler</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-header" id="main-header">
+                <div>
+                    <h2 class="card-title">{{ promotion.nom_promo }} {{ promotion.nom_dpt }} {{ promotion.annee }}</h2>
+                    <p class="card-subtitle">Liste des étudiants de la promotion.</p>
+                </div>
+                <button id="btn-creer" onclick="toggleForm()" class="btn btn-primary">
+                    <svg style="width:1.25rem; height:1.25rem; margin-right:0.5rem" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> 
+                    Ajouter étudiant
+                </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <form action="index.php?p=gest_etudiant" method="post">
+                    <input type="hidden" name="id_promo" value="{{ promotion.id_promo }}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>NOM</th>
+                                <th>PRÉNOM</th>
+                                <th>TIERS-TEMPS</th>
+                                <th>MOBILITÉ RÉDUITE</th>
+                                <th>GROUPE</th>
+                                <th style="width: 120px;">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in etudiants %}
+                            <tr id="row{{ e.id_etudiant }}">
+                                <td id="A{{ e.id_etudiant }}" style="font-weight: 600;">{{ e.nom_etudiant }}</td>
+                                <td id="B{{ e.id_etudiant }}">{{ e.prenom_etudiant }}</td>
+                                <td id="C{{ e.id_etudiant }}">
+                                    {% if e.tiers_temps %}<span class="badge-oui">OUI</span>{% else %}<span class="badge-non">NON</span>{% endif %}
+                                </td>
+                                <td id="D{{ e.id_etudiant }}">
+                                    {% if e.mob_reduite %}<span class="badge-oui">OUI</span>{% else %}<span class="badge-non">NON</span>{% endif %}
+                                </td>
+                                <td id="E{{ e.id_etudiant }}">{{ e.nom_groupe }}</td>
+                                <td>
+                                    <div class="action-buttons" style="display:flex; justify-content:center; align-items:center; gap:0.5rem;">
+                                        <button type="button" 
+                                            data-id="{{ e.id_etudiant }}" 
+                                            data-nom="{{ e.nom_etudiant|escape('js') }}" 
+                                            data-prenom="{{ e.prenom_etudiant|escape('js') }}" 
+                                            data-tt="{{ e.tiers_temps ? '1' : '0' }}" 
+                                            data-pmr="{{ e.mob_reduite ? '1' : '0' }}" 
+                                            data-groupe="{{ e.id_groupe }}" 
+                                            onclick="preparerModif(this)" class="btn-action btn-blue" title="Modifier">
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                        <a href="index.php?p=gest_etudiant&id_promo={{ promotion.id_promo }}&suppr={{ e.id_etudiant }}" onclick="return confirm('Voulez-vous vraiment supprimer cet étudiant ?');" class="btn-action btn-red" title="Supprimer">
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" style="padding: 2rem; color: #6b7280;">Aucun étudiant n'est enregistré pour cette promotion.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <div id="barreValide" class="barre-valide hidden-form">
+                        <button type="button" onclick="window.location.reload();" class="btn btn-secondary">Annuler</button>
+                        <button type="submit" name="validemodif" value="Valider" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm() {
+            const form = document.getElementById('form-creer-etudiant');
+            const btn = document.getElementById('btn-creer');
+            if (form.classList.contains('hidden-form')) {
+                form.classList.remove('hidden-form');
+                btn.classList.add('hidden-form');
+                form.querySelector('input[name="nom"]').focus();
+            } else {
+                form.classList.add('hidden-form');
+                btn.classList.remove('hidden-form');
+            }
+        }
+
+        // Construction du select des groupes pour la modification
+        const listeGroupesHtml = `
+            <select name="n_id_groupe" class="form-control" style="text-align: center;">
+                {% for g in groupes %}
+                    <option value="{{ g.id_groupe }}">{{ g.nom_groupe }}</option>
+                {% endfor %}
+            </select>
+        `;
+
+        function preparerModif(btn) {
+            const wrapper = document.getElementById('page-wrapper');
+            const d = btn.dataset;
+            const row = document.getElementById('row' + d.id);
+            
+            wrapper.classList.add('is-editing');
+            row.classList.add('editing-row');
+            document.getElementById('barreValide').classList.remove('hidden-form');
+            
+            // A: Nom
+            document.getElementById('A' + d.id).innerHTML = `<input type="text" name="n_nom" value="${d.nom}" required class="form-control" style="text-align:center;"><input type="hidden" name="id_etudiant" value="${d.id}">`;
+            
+            // B: Prénom
+            document.getElementById('B' + d.id).innerHTML = `<input type="text" name="n_prenom" value="${d.prenom}" required class="form-control" style="text-align:center;">`;
+            
+            // C: Tiers-temps
+            const isTT = d.tt === '1' ? 'checked' : '';
+            document.getElementById('C' + d.id).innerHTML = `<input type="checkbox" name="n_tiers_temps" value="1" ${isTT} style="width:1.2rem; height:1.2rem; cursor:pointer;">`;
+            
+            // D: Mobilité réduite
+            const isPMR = d.pmr === '1' ? 'checked' : '';
+            document.getElementById('D' + d.id).innerHTML = `<input type="checkbox" name="n_mob_reduite" value="1" ${isPMR} style="width:1.2rem; height:1.2rem; cursor:pointer;">`;
+            
+            // E: Groupe
+            document.getElementById('E' + d.id).innerHTML = listeGroupesHtml;
+            // Sélectionne le bon groupe dans le select fraîchement inséré
+            document.getElementById('E' + d.id).querySelector('select').value = d.groupe;
+            
+            document.getElementById('A' + d.id).querySelector('input').focus();
+        }
+    </script>
+</body>
+</html>

@@ -217,7 +217,8 @@ function placementSaveToDB(array &$state): int
     foreach ($rooms as $room) {
         $salleId = (int) $room['id'];
         foreach ($room['assignments'] as $seatKey => $student) {
-            if ($student === null) continue;
+            if ($student === null)
+                continue;
             $parts = explode('-', $seatKey);
             $placeX = (int) $parts[0];
             $placeY = (int) $parts[1];
@@ -1002,104 +1003,542 @@ switch ($page) {
             'devoir_id' => $state['devoir_id'] ?? null,
         ]);
         break;
+    // -------------------------------------------------------------------
+    //Ici on rentre dans les différentes pages de la partie gestion
+
+    //Page Matière dans la partie Gestion
     case 'gest_mat':
-        $promotions_test = [
-            ['id_promo' => 1, 'nom_promo' => 'BUT1', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_promo' => 2, 'nom_promo' => 'BUT2', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_promo' => 3, 'nom_promo' => 'BUT2 Passerelle', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_promo' => 4, 'nom_promo' => 'BUT3', 'nom_dpt' => 'INFO', 'annee' => '2025']
-        ];
-        $matieres_test = [
-            ['id_mat' => 101, 'nom_mat' => 'Eco-Gestion-Droit', 'nom_promo' => 'BUT1', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_mat' => 102, 'nom_mat' => 'Informatique', 'nom_promo' => 'BUT1', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_mat' => 103, 'nom_mat' => 'Math', 'nom_promo' => 'BUT1', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_mat' => 104, 'nom_mat' => 'Eco-Gestion-Droit', 'nom_promo' => 'BUT2', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_mat' => 105, 'nom_mat' => 'Développement Web', 'nom_promo' => 'BUT2', 'nom_dpt' => 'INFO', 'annee' => '2025'],
-            ['id_mat' => 106, 'nom_mat' => 'Architecture Réseau', 'nom_promo' => 'BUT3', 'nom_dpt' => 'INFO', 'annee' => '2025']
-        ];
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $matiereDAO = new \App\Modele\DAO\MatiereDAO($pdo);
+
+        if (isset($_GET['suppr'])) {
+            $matASupprimer = new \App\Modele\Entity\Matiere((int) $_GET['suppr'], "temp", 1);
+            $matiereDAO->delete($matASupprimer);
+            header("Location: index.php?p=gest_mat");
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $idPromo = (int) $_POST['prom'];
+            if ($idPromo > 0) {
+                $nouvelleMat = new \App\Modele\Entity\Matiere(0, $_POST['nom_mat'], $idPromo);
+                $matiereDAO->insert($nouvelleMat);
+            }
+            header("Location: index.php?p=gest_mat");
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $idPromo = (int) $_POST['n_promo_mat'];
+            if ($idPromo > 0) {
+                $modifMat = new \App\Modele\Entity\Matiere((int) $_POST['id_mat'], $_POST['n_nom_mat'], $idPromo);
+                $matiereDAO->update($modifMat);
+            }
+            header("Location: index.php?p=gest_mat");
+            exit;
+        }
+
+        $stmtPromo = $pdo->query("SELECT p.id_promo, p.nom_promo, p.annee, d.nom_dpt FROM promotion p LEFT JOIN departement d ON p.id_dpt = d.id_dpt ORDER BY p.nom_promo, p.annee");
+        $promotions_db = $stmtPromo->fetchAll(PDO::FETCH_ASSOC);
+
+
         echo $twig->render('Gestion/matiere.html.twig', [
-            'matieres' => $matieres_test,
-            'promotions' => $promotions_test
+            'page' => $page,
+            'matieres' => $matiereDAO->findAllWithPromo(),
+            'promotions' => $promotions_db
         ]);
         break;
+
+    //Page Enseignant dans la partie Gestion
     case 'gest_ens':
-        $enseignants_test = [
-            ['id_ens' => 1, 'nom' => 'Bougdira', 'prenom' => 'Nathalie', 'sexe' => 'F', 'login' => 'bougnath', 'admin' => 1],
-            ['id_ens' => 2, 'nom' => 'Laroche', 'prenom' => 'Pierre', 'sexe' => 'M', 'login' => 'laroche', 'admin' => 0],
-            ['id_ens' => 3, 'nom' => 'Roka', 'prenom' => 'Zsuzsanna', 'sexe' => 'F', 'login' => 'roka', 'admin' => 0],
-            ['id_ens' => 4, 'nom' => 'Spengler', 'prenom' => 'Anne', 'sexe' => 'F', 'login' => 'spengler', 'admin' => 0]
-        ];
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $ensDAO = new \App\Modele\DAO\EnseignantDAO($pdo);
+
+        if (isset($_GET['suppr'])) {
+            $ensDAO->deleteById((int) $_GET['suppr']);
+            header("Location: index.php?p=gest_ens");
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $nom = trim($_POST['nom'] ?? '');
+            $prenom = trim($_POST['prenom'] ?? '');
+            $sexe = $_POST['sexe'] ?? 'M';
+            $login = trim($_POST['login'] ?? '');
+            $admin = isset($_POST['admin']) ? (bool) $_POST['admin'] : false;
+
+            if (!empty($nom) && !empty($prenom) && !empty($login)) {
+                $nouvelEns = new \App\Modele\Entity\Enseignant(0, $nom, $prenom, $sexe, $login, $admin);
+                $ensDAO->insert($nouvelEns, $login);
+            }
+            header("Location: index.php?p=gest_ens");
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $id_ens = (int) $_POST['id_ens'];
+            $nom = trim($_POST['n_nom'] ?? '');
+            $prenom = trim($_POST['n_prenom'] ?? '');
+            $sexe = $_POST['n_sexe'] ?? 'M';
+            $login = trim($_POST['n_login'] ?? '');
+            $admin = isset($_POST['n_admin']) ? (bool) $_POST['n_admin'] : false;
+
+            if ($id_ens > 0 && !empty($nom) && !empty($prenom) && !empty($login)) {
+                $modifEns = new \App\Modele\Entity\Enseignant($id_ens, $nom, $prenom, $sexe, $login, $admin);
+                $ensDAO->update($modifEns);
+            }
+            header("Location: index.php?p=gest_ens");
+            exit;
+        }
+
+        $enseignants_db = $ensDAO->findAll();
 
         echo $twig->render('Gestion/enseignant.html.twig', [
-            'enseignants' => $enseignants_test
+            'page' => $page,
+            'enseignants' => $enseignants_db
         ]);
         break;
+
+    //Page Enseignement dans la partie Gestion
     case 'gest_ensmat':
-        $matieres_test = [
-            ['id_mat' => 101, 'nom_mat' => 'Eco-Gestion-Droit', 'nom_promo' => 'BUT1 INFO'],
-            ['id_mat' => 102, 'nom_mat' => 'Math', 'nom_promo' => 'BUT1 INFO'],
-            ['id_mat' => 103, 'nom_mat' => 'Informatique', 'nom_promo' => 'BUT1 INFO']
-        ];
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $ensDAO = new \App\Modele\DAO\EnseignantDAO($pdo);
+        $matDAO = new \App\Modele\DAO\MatiereDAO($pdo);
+        $enseigneDAO = new \App\Modele\DAO\EnseignementDAO($pdo);
 
-        $enseignants_test = [
-            ['id_ens' => 1, 'nom' => 'Bougdira', 'prenom' => 'Nathalie'],
-            ['id_ens' => 2, 'nom' => 'Laroche', 'prenom' => 'Pierre']
-        ];
+        if (isset($_GET['suppr_ens']) && isset($_GET['suppr_mat'])) {
+            $enseigneDAO->delete((int) $_GET['suppr_ens'], (int) $_GET['suppr_mat']);
+            header("Location: index.php?p=gest_ensmat");
+            exit;
+        }
 
-        $enseignements_test = [
-            [
-                'id_enseignement' => 1,
-                'nom_enseignant' => 'Bougdira',
-                'prenom_enseignant' => 'Nathalie',
-                'nom_matiere' => 'Eco-Gestion-Droit',
-                'nom_promo' => 'BUT1'
-            ],
-            [
-                'id_enseignement' => 2,
-                'nom_enseignant' => 'Laroche',
-                'prenom_enseignant' => 'Pierre',
-                'nom_matiere' => 'test',
-                'nom_promo' => 'BUT1'
-            ]
-        ];
+        if (isset($_POST['ajouter'])) {
+            $idEns = (int) $_POST['id_ens'];
+            $idMat = (int) $_POST['id_mat'];
+
+            if ($idEns > 0 && $idMat > 0) {
+                $nouvelEnseignement = new \App\Modele\Entity\Enseignement($idEns, $idMat);
+                $enseigneDAO->insert($nouvelEnseignement);
+            }
+            header("Location: index.php?p=gest_ensmat");
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $oldIdEns = (int) $_POST['old_id_ens'];
+            $oldIdMat = (int) $_POST['old_id_mat'];
+            $newIdEns = (int) $_POST['n_id_ens'];
+            $newIdMat = (int) $_POST['n_id_mat'];
+
+            if ($oldIdEns > 0 && $oldIdMat > 0 && $newIdEns > 0 && $newIdMat > 0) {
+                $modifEnseignement = new \App\Modele\Entity\Enseignement($newIdEns, $newIdMat);
+                $enseigneDAO->update($oldIdEns, $oldIdMat, $modifEnseignement);
+            }
+            header("Location: index.php?p=gest_ensmat");
+            exit;
+        }
 
         echo $twig->render('Gestion/enseignement.html.twig', [
-            'enseignants' => $enseignants_test,
-            'matieres' => $matieres_test,
-            'enseignements' => $enseignements_test
+            'page' => $page,
+            'enseignements' => $enseigneDAO->findAllWithDetails(),
+            'enseignants' => $ensDAO->findAll(),
+            'matieres' => $matDAO->findAllWithPromo()
         ]);
         break;
+
+    //page Salle dans la partie Gestion
     case 'gest_salle':
-        echo $twig->render('Gestion/salle.html.twig', []);
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $salleDAO = new \App\Modele\DAO\SalleDAO($pdo);
+        if (isset($_GET['suppr'])) {
+            $salleDAO->deleteById((int) $_GET['suppr']);
+            header("Location: index.php?p=gest_salle");
+            exit;
+        }
+        if (isset($_POST['validemodif'])) {
+            $idSalle = (int) $_POST['id_salle'];
+            $nomSalle = trim($_POST['n_nom_salle'] ?? '');
+            $capacite = (int) $_POST['n_capacite'];
+            $etage = (int) $_POST['n_etage'];
+            $idBat = (int) $_POST['n_id_bat'];
+            $idDpt = (int) $_POST['n_id_dpt'];
+
+            if ($idSalle > 0 && !empty($nomSalle) && $capacite > 0 && $idBat > 0 && $idDpt > 0) {
+                $oldSalle = $salleDAO->getById($idSalle);
+                if ($oldSalle) {
+                    $modifSalle = new \App\Modele\Entity\Salle($idSalle, $nomSalle, $capacite, $etage, $oldSalle->getIdPlan(), $idDpt, $idBat);
+                    $salleDAO->update($modifSalle);
+                }
+            }
+            header("Location: index.php?p=gest_salle");
+            exit;
+        }
+        $stmtBat = $pdo->query("SELECT id_bat AS idBatiment, nom_bat AS nom FROM batiment ORDER BY nom_bat");
+        $batiments_db = $stmtBat->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtDpt = $pdo->query("SELECT id_dpt AS idDpt, nom_dpt AS nom FROM departement ORDER BY nom_dpt");
+        $departements_db = $stmtDpt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo $twig->render('Gestion/salle.html.twig', [
+            'page' => $page,
+            'salles' => $salleDAO->findAllWithDetails(),
+            'batiments' => $batiments_db,
+            'departements' => $departements_db
+        ]);
         break;
 
+    //Page Salle(création) dans la partie Gestion
+    case 'ajout_salle':
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $salleDAO = new \App\Modele\DAO\SalleDAO($pdo);
+
+        $salleExistante = null;
+        if (isset($_GET['id'])) {
+            $stmt = $pdo->prepare("SELECT s.*, p.donnee FROM salle s JOIN plan p ON s.id_plan = p.id_plan WHERE s.id_salle = :id");
+            $stmt->execute([':id' => (int) $_GET['id']]);
+            $salleExistante = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        if (isset($_POST['save_salle_complete'])) {
+            $nom = trim($_POST['nomSalle'] ?? '');
+            $idBat = (int) $_POST['batSalle'];
+            $idDpt = (int) $_POST['dptSalle'];
+            $etage = (int) $_POST['etageSalle'];
+            $donnee = trim($_POST['donneePlan'] ?? '');
+            $capacite = (int) $_POST['capacite'];
+            $idSalle = (int) ($_POST['idSalleExistante'] ?? 0);
+
+            if ($idSalle > 0) {
+                $salleObj = $salleDAO->getById($idSalle);
+                $stmtUpdPlan = $pdo->prepare("UPDATE plan SET donnee = :donnee WHERE id_plan = :idp");
+                $stmtUpdPlan->execute([':donnee' => $donnee, ':idp' => $salleObj->getIdPlan()]);
+
+                $salleUpd = new \App\Modele\Entity\Salle($idSalle, $nom, $capacite, $etage, $salleObj->getIdPlan(), $idDpt, $idBat);
+                $salleDAO->update($salleUpd);
+            } else {
+                $stmtPlan = $pdo->prepare("INSERT INTO plan (donnee) VALUES (:donnee)");
+                $stmtPlan->execute([':donnee' => $donnee]);
+                $idPlan = (int) $pdo->lastInsertId();
+                $nouvelleSalle = new \App\Modele\Entity\Salle(0, $nom, $capacite, $etage, $idPlan, $idDpt, $idBat);
+                $salleDAO->insert($nouvelleSalle);
+            }
+            header("Location: index.php?p=gest_salle");
+            exit;
+        }
+        $stmtBat = $pdo->query("SELECT id_bat AS idBatiment, nom_bat AS nom FROM batiment ORDER BY nom_bat");
+        $stmtDpt = $pdo->query("SELECT id_dpt AS idDpt, nom_dpt AS nom FROM departement ORDER BY nom_dpt");
+
+        echo $twig->render('Gestion/ajoutsalle.html.twig', [
+            'page' => 'gest_salle',
+            'batiments' => $stmtBat->fetchAll(PDO::FETCH_ASSOC),
+            'departements' => $stmtDpt->fetchAll(PDO::FETCH_ASSOC),
+            'salleModif' => $salleExistante
+        ]);
+        break;
+
+    //Page Département dans la partie Gestion
     case 'gest_dpt':
-        $departements_test = [
-            ['id_dpt' => 1, 'nom_dpt' => 'INFO'],
-            ['id_dpt' => 2, 'nom_dpt' => 'SD']
-        ];
+        $dptDAO = new \App\Modele\DAO\DepartementDAO();
+        if (isset($_GET['suppr'])) {
+            $dptDAO->deleteById((int) $_GET['suppr']);
+            header("Location: index.php?p=gest_dpt");
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $nomDpt = trim($_POST['nom_dpt'] ?? '');
+
+            if (!empty($nomDpt)) {
+                $nouveauDpt = new \App\Modele\Entity\Departement(0, $nomDpt);
+                $dptDAO->insert($nouveauDpt);
+            }
+            header("Location: index.php?p=gest_dpt");
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $idDpt = (int) $_POST['id_dpt'];
+            $nomDpt = trim($_POST['n_nom_dpt'] ?? '');
+
+            if ($idDpt > 0 && !empty($nomDpt)) {
+                $modifDpt = new \App\Modele\Entity\Departement($idDpt, $nomDpt);
+                $dptDAO->update($modifDpt);
+            }
+            header("Location: index.php?p=gest_dpt");
+            exit;
+        }
+
+        $departements_db = $dptDAO->findAll();
 
         echo $twig->render('Gestion/departement.html.twig', [
-            'departements' => $departements_test
+            'page' => $page,
+            'departements' => $departements_db
         ]);
         break;
 
-
+    //Page Batiment dans la partie Gestion
     case 'gest_bat':
-        $batiments_test = [
-            ['id_bat' => 1, 'nom_bat' => 'IUT de Metz', 'ad_bat' => 'Saulcy'],
-            ['id_bat' => 2, 'nom_bat' => 'Lettres et Langues', 'ad_bat' => 'Saulcy']
-        ];
+        $batDAO = new \App\Modele\DAO\BatimentDAO();
+
+        if (isset($_GET['suppr'])) {
+            $batDAO->deleteById((int) $_GET['suppr']);
+            header("Location: index.php?p=gest_bat");
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $nomBat = trim($_POST['nom_bat'] ?? '');
+            $adBat = trim($_POST['ad_bat'] ?? '');
+
+            if (!empty($nomBat) && !empty($adBat)) {
+                $nouveauBat = new \App\Modele\Entity\Batiment(0, $nomBat, $adBat);
+                $batDAO->insert($nouveauBat);
+            }
+            header("Location: index.php?p=gest_bat");
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $idBat = (int) $_POST['id_bat'];
+            $nomBat = trim($_POST['n_nom_bat'] ?? '');
+            $adBat = trim($_POST['n_ad_bat'] ?? '');
+
+            if ($idBat > 0 && !empty($nomBat) && !empty($adBat)) {
+                $modifBat = new \App\Modele\Entity\Batiment($idBat, $nomBat, $adBat);
+                $batDAO->update($modifBat);
+            }
+            header("Location: index.php?p=gest_bat");
+            exit;
+        }
+        $batiments_db = $batDAO->findAll();
 
         echo $twig->render('Gestion/batiment.html.twig', [
-            'batiments' => $batiments_test
+            'page' => $page,
+            'batiments' => $batiments_db
         ]);
         break;
 
-        
+    //Page Promotion dans la partie Gestion
     case 'gest_promo':
-        echo $twig->render('Gestion/promotion.html.twig', []);
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $promoDAO = new \App\Modele\DAO\PromotionDAO($pdo);
+        $groupeDAO = new \App\Modele\DAO\GroupeDAO($pdo);
+
+        if (isset($_GET['suppr'])) {
+            $promo = $promoDAO->getById((int) $_GET['suppr']);
+            if ($promo) {
+                $promoDAO->delete($promo);
+            }
+            header("Location: index.php?p=gest_promo");
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $nom = trim($_POST['nom_promo'] ?? '');
+            $annee = trim($_POST['annee'] ?? '');
+            $idDpt = (int) $_POST['id_dpt'];
+
+            if (!empty($nom) && !empty($annee) && $idDpt > 0) {
+                $nouvellePromo = new \App\Modele\Entity\Promotion(0, $nom, $annee, $idDpt);
+                $promoDAO->insert($nouvellePromo);
+            }
+            header("Location: index.php?p=gest_promo");
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $idPromo = (int) $_POST['id_promo'];
+            $nom = trim($_POST['n_nom_promo'] ?? '');
+            $annee = trim($_POST['n_annee'] ?? '');
+            $idDpt = (int) $_POST['n_id_dpt'];
+
+            if ($idPromo > 0 && !empty($nom) && !empty($annee) && $idDpt > 0) {
+                $modifPromo = new \App\Modele\Entity\Promotion($idPromo, $nom, $annee, $idDpt);
+                $promoDAO->update($modifPromo);
+            }
+            header("Location: index.php?p=gest_promo");
+            exit;
+        }
+
+        $stmtDpt = $pdo->query("SELECT id_dpt, nom_dpt FROM departement ORDER BY nom_dpt");
+        $departements_db = $stmtDpt->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "SELECT p.id_promo, p.nom_promo, p.annee, p.id_dpt, d.nom_dpt, 
+                       COUNT(DISTINCT g.id_groupe) as nb_groupes,
+                       COUNT(DISTINCT e.id_etudiant) as nb_etudiants
+                FROM promotion p 
+                LEFT JOIN departement d ON p.id_dpt = d.id_dpt 
+                LEFT JOIN groupe g ON p.id_promo = g.id_promo 
+                LEFT JOIN etudiant e ON g.id_groupe = e.id_groupe
+                GROUP BY p.id_promo, p.nom_promo, p.annee, p.id_dpt, d.nom_dpt 
+                ORDER BY p.annee DESC, p.nom_promo ASC";
+        $stmtPromo = $pdo->query($sql);
+        $promotions_db = $stmtPromo->fetchAll(PDO::FETCH_ASSOC);
+
+        echo $twig->render('Gestion/promotion.html.twig', [
+            'page' => $page,
+            'departements' => $departements_db,
+            'promotions' => $promotions_db
+        ]);
         break;
+
+
+    //Page Groupe qui est dans Promotion qui est dans Gestion
+    case 'gest_groupe':
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $groupeDAO = new \App\Modele\DAO\GroupeDAO($pdo);
+
+        $idPromo = (int) ($_GET['id_promo'] ?? $_POST['id_promo'] ?? 0);
+
+        if ($idPromo === 0) {
+            header("Location: index.php?p=gest_promo");
+            exit;
+        }
+
+        if (isset($_GET['suppr'])) {
+            $groupe = $groupeDAO->getById((int) $_GET['suppr']);
+            if ($groupe) {
+                $groupeDAO->delete($groupe);
+            }
+            header("Location: index.php?p=gest_groupe&id_promo=" . $idPromo);
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $nom = trim($_POST['nom_groupe'] ?? '');
+            if (!empty($nom)) {
+                $nouveauGroupe = new \App\Modele\Entity\Groupe(0, $nom, 0, $idPromo);
+                $groupeDAO->insert($nouveauGroupe);
+            }
+            header("Location: index.php?p=gest_groupe&id_promo=" . $idPromo);
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $idG = (int) $_POST['id_groupe'];
+            $nom = trim($_POST['n_nom_groupe'] ?? '');
+            if ($idG > 0 && !empty($nom)) {
+                $g = $groupeDAO->getById($idG);
+                if ($g) {
+                    $g->setNomGroupe($nom);
+                    $groupeDAO->update($g);
+                }
+            }
+            header("Location: index.php?p=gest_groupe&id_promo=" . $idPromo);
+            exit;
+        }
+
+        $stmtP = $pdo->prepare("SELECT p.*, d.nom_dpt FROM promotion p LEFT JOIN departement d ON p.id_dpt = d.id_dpt WHERE p.id_promo = ?");
+        $stmtP->execute([$idPromo]);
+        $promoDetails = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+        $stmtG = $pdo->prepare("
+            SELECT g.id_groupe, g.nom_groupe, g.id_promo, COUNT(e.id_etudiant) as nb_etud 
+            FROM groupe g 
+            LEFT JOIN etudiant e ON g.id_groupe = e.id_groupe 
+            WHERE g.id_promo = ? 
+            GROUP BY g.id_groupe, g.nom_groupe, g.id_promo 
+            ORDER BY g.nom_groupe
+        ");
+        $stmtG->execute([$idPromo]);
+        $groupes = $stmtG->fetchAll(PDO::FETCH_ASSOC);
+
+        echo $twig->render('Gestion/groupe.html.twig', [
+            'page' => 'gest_promo',
+            'promotion' => $promoDetails,
+            'groupes' => $groupes
+        ]);
+        break;
+
+    //Page Etudiant qui est dans Promotion qui est dans Gestion
+    case 'gest_etudiant':
+        $pdo = \App\Modele\DAO\Connexion::getInstance();
+        $etudiantDAO = new \App\Modele\DAO\EtudiantDAO($pdo);
+
+        $idPromo = (int) ($_GET['id_promo'] ?? $_POST['id_promo'] ?? 0);
+
+        if ($idPromo === 0) {
+            header("Location: index.php?p=gest_promo");
+            exit;
+        }
+
+        if (isset($_GET['suppr'])) {
+            $etud = $etudiantDAO->getById((int) $_GET['suppr']);
+            if ($etud) {
+                $etudiantDAO->delete($etud);
+            }
+            header("Location: index.php?p=gest_etudiant&id_promo=" . $idPromo);
+            exit;
+        }
+
+        if (isset($_POST['ajouter'])) {
+            $nom = trim($_POST['nom'] ?? '');
+            $prenom = trim($_POST['prenom'] ?? '');
+            $tt = isset($_POST['tiers_temps']) ? 1 : 0;
+            $pmr = isset($_POST['mob_reduite']) ? 1 : 0;
+            $idG = (int) $_POST['id_groupe'];
+
+            if (!empty($nom) && !empty($prenom) && $idG > 0) {
+                $stmt = $pdo->prepare("INSERT INTO etudiant (nom_etudiant, prenom_etudiant, tiers_temps, mob_reduite, id_groupe) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([strtoupper($nom), $prenom, $tt, $pmr, $idG]);
+            }
+            header("Location: index.php?p=gest_etudiant&id_promo=" . $idPromo);
+            exit;
+        }
+
+        if (isset($_POST['validemodif'])) {
+            $idE = (int) $_POST['id_etudiant'];
+            $nom = trim($_POST['n_nom'] ?? '');
+            $prenom = trim($_POST['n_prenom'] ?? '');
+            $tt = isset($_POST['n_tiers_temps']) ? 1 : 0;
+            $pmr = isset($_POST['n_mob_reduite']) ? 1 : 0;
+            $idG = (int) $_POST['n_id_groupe'];
+
+            if ($idE > 0 && !empty($nom)) {
+                $stmt = $pdo->prepare("UPDATE etudiant SET nom_etudiant=?, prenom_etudiant=?, tiers_temps=?, mob_reduite=?, id_groupe=? WHERE id_etudiant=?");
+                $stmt->execute([strtoupper($nom), $prenom, $tt, $pmr, $idG, $idE]);
+            }
+            header("Location: index.php?p=gest_etudiant&id_promo=" . $idPromo);
+            exit;
+        }
+
+        $stmtP = $pdo->prepare("SELECT p.*, d.nom_dpt FROM promotion p LEFT JOIN departement d ON p.id_dpt = d.id_dpt WHERE p.id_promo = ?");
+        $stmtP->execute([$idPromo]);
+        $promoDetails = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+        $stmtG = $pdo->prepare("SELECT * FROM groupe WHERE id_promo = ? ORDER BY nom_groupe");
+        $stmtG->execute([$idPromo]);
+        $groupes = $stmtG->fetchAll(PDO::FETCH_ASSOC);
+
+        $idGroupeFilter = (int) ($_GET['id_groupe'] ?? 0);
+
+        if ($idGroupeFilter > 0) {
+            $stmtE = $pdo->prepare("
+                SELECT e.*, g.nom_groupe 
+                FROM etudiant e 
+                JOIN groupe g ON e.id_groupe = g.id_groupe 
+                WHERE g.id_promo = ? AND e.id_groupe = ?
+                ORDER BY e.nom_etudiant, e.prenom_etudiant
+            ");
+            $stmtE->execute([$idPromo, $idGroupeFilter]);
+        } else {
+            $stmtE = $pdo->prepare("
+                SELECT e.*, g.nom_groupe 
+                FROM etudiant e 
+                JOIN groupe g ON e.id_groupe = g.id_groupe 
+                WHERE g.id_promo = ?
+                ORDER BY g.nom_groupe ASC, e.nom_etudiant ASC, e.prenom_etudiant ASC
+            ");
+            $stmtE->execute([$idPromo]);
+        }
+        $etudiants = $stmtE->fetchAll(PDO::FETCH_ASSOC);
+
+        echo $twig->render('Gestion/etudiant.html.twig', [
+            'page' => 'gest_promo',
+            'promotion' => $promoDetails,
+            'groupes' => $groupes,
+            'etudiants' => $etudiants
+        ]);
+        break;
+    // -------------------------------------------------------------------
 
 
     case 'login_verify':
@@ -1108,10 +1547,10 @@ switch ($page) {
         $ensDao = new EnseignantDAO();
         $enseignant = $ensDao->getEnseignantByLogin($login);
         if ($enseignant && $ensDao->verifyPassword($login, $password)) {
-            
+
             $_SESSION['user_id'] = $enseignant->getIdEnseignant();
             $_SESSION['user_nom'] = $enseignant->getNom() . ' ' . $enseignant->getPrenom();
-            
+
             header('Location: index.php?p=util_placement');
             exit;
         } else {

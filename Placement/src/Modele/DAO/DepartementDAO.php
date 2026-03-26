@@ -62,4 +62,10 @@ class DepartementDAO {
         ]);
     }
 
+    public function deleteById(int $id): bool {
+        $stmt = $this->_db->prepare("DELETE FROM departement WHERE id_dpt = :id");
+        return $stmt->execute([':id' => $id]);
+    }
+
+
 }

@@ -65,4 +65,9 @@ class BatimentDAO {
             ':id'  => $b->getIdBatiment()
         ]);
     }
+
+    public function deleteById(int $id): bool {
+        $stmt = $this->_db->prepare("DELETE FROM batiment WHERE id_bat = :id");
+        return $stmt->execute([':id' => $id]);
+    }
 }

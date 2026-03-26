@@ -79,4 +79,19 @@ class SalleDAO {
             ':id' => $s->getIdSalle()
         ]);
     }
+
+    public function findAllWithDetails(): array {
+        $sql = "SELECT s.id_salle, s.nom_salle, s.capacite, s.etage, s.id_plan, s.id_dpt, s.id_bat, b.nom_bat, d.nom_dpt
+                FROM salle s
+                LEFT JOIN batiment b ON s.id_bat = b.id_bat
+                LEFT JOIN departement d ON s.id_dpt = d.id_dpt
+                ORDER BY s.nom_salle";
+        $stmt = $this->_db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteById(int $id): bool {
+        $stmt = $this->_db->prepare("DELETE FROM salle WHERE id_salle = :id");
+        return $stmt->execute([':id' => $id]);
+    }
 }

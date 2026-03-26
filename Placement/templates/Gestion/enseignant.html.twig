@@ -8,7 +8,6 @@
     <title>Gestion des Enseignants</title>
     
     <style>
-        /* STYLE GLOBAL */
         body { font-family: Arial, Helvetica, sans-serif; background-color: #f3f4f6; color: #111827; margin: 0; padding: 0; }
         .main-container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; transition: all 0.3s ease; }
         .card { background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #d1d5db; margin-bottom: 1.5rem; overflow: hidden; }
@@ -18,28 +17,23 @@
         .hidden-form { display: none !important; }
         .form-control { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem; outline: none; box-sizing: border-box; width: 100%; }
         
-        /* BOUTONS */
         .btn { display: inline-flex; align-items: center; font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; border: none; font-size: 0.875rem; transition: 0.2s; white-space: nowrap; }
         .btn-primary { background-color: #2563eb; color: #ffffff; }
         .btn-primary:hover { background-color: #1d4ed8; }
         .btn-secondary { background-color: #e5e7eb; color: #1f2937; }
         
-        /* FORMULAIRE FLEX (Évite les collisions) */
         .form-flex-container { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-end; }
         .form-item { flex: 1; min-width: 120px; max-width: 180px; }
         .form-btns { flex: none; display: flex; gap: 0.5rem; margin-left: 1rem; }
 
-        /* TABLEAU */
         .data-table { width: 100%; border-collapse: collapse; text-align: center; border: 2px solid #d1d5db; }
         .data-table th, .data-table td { border: 1px solid #d1d5db; padding: 1rem; }
         .data-table thead { background-color: #e5e7eb; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; }
         
-        /* BADGES */
         .badge-admin-yes { padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: bold; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .badge-admin-no { padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: bold; background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
         .badge-sexe { padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background: #f3f4f6; border: 1px solid #d1d5db; }
 
-        /* EFFET MODAL */
         .is-editing #bloccrea, .is-editing .card-header { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         .is-editing tbody tr { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
         .is-editing tbody tr.editing-row { opacity: 1; filter: none; background-color: #fff !important; pointer-events: auto; }
@@ -63,7 +57,7 @@
                     <select name="admin" class="form-control"><option value="0">NON</option><option value="1">OUI</option></select>
                 </div>
                 <div class="form-btns">
-                    <button type="submit" name="ajouter" value="Ajouter" class="btn btn-primary">Enregistrer</button>
+                    <button type="submit" name="ajouter" value="1" class="btn btn-primary">Enregistrer</button>
                     <button type="button" onclick="toggleForm()" class="btn btn-secondary">Annuler</button>
                 </div>
             </form>
@@ -90,40 +84,42 @@
                         </thead>
                         <tbody>
                             {% for e in enseignants %}
-                            <tr id="row{{ e.id_ens }}">
-                                <td id="A{{ e.id_ens }}" style="font-weight: 500;">{{ e.nom }}</td>
-                                <td id="B{{ e.id_ens }}">{{ e.prenom }}</td>
-                                <td id="C{{ e.id_ens }}"><span class="badge-sexe">{{ e.sexe }}</span></td>
-                                <td id="D{{ e.id_ens }}" style="color:#6b7280; font-family: monospace;">{{ e.login }}</td>
-                                <td id="E{{ e.id_ens }}">
+                            <tr id="row{{ e.idEnseignant }}">
+                                <td id="A{{ e.idEnseignant }}" style="font-weight: 500;">{{ e.nom }}</td>
+                                <td id="B{{ e.idEnseignant }}">{{ e.prenom }}</td>
+                                <td id="C{{ e.idEnseignant }}"><span class="badge-sexe">{{ e.sexe }}</span></td>
+                                <td id="D{{ e.idEnseignant }}" style="color:#6b7280; font-family: monospace;">{{ e.login }}</td>
+                                <td id="E{{ e.idEnseignant }}">
                                     {% if e.admin %}<span class="badge-admin-yes">OUI</span>{% else %}<span class="badge-admin-no">NON</span>{% endif %}
                                 </td>
                                 <td>
                                     <div class="action-buttons" style="display:flex; justify-content:center; gap:12px;">
                                         <button type="button" 
-                                                data-id="{{ e.id_ens }}" 
+                                                data-id="{{ e.idEnseignant }}" 
                                                 data-nom="{{ e.nom|escape('js') }}" 
                                                 data-prenom="{{ e.prenom|escape('js') }}" 
                                                 data-sexe="{{ e.sexe }}" 
                                                 data-login="{{ e.login|escape('js') }}" 
-                                                data-admin="{{ e.admin }}"
+                                                data-admin="{{ e.admin ? 1 : 0 }}"
                                                 onclick="preparerModif(this)"
-                                                style="background:none; border:none; cursor:pointer;">
+                                                style="background:none; border:none; cursor:pointer;" title="Modifier">
                                             <svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                         </button>
-                                        <a href="index.php?p=gest_ens&suppr={{ e.id_ens }}" onclick="return confirm('Supprimer ?');" style="text-decoration:none;">
+                                        <a href="index.php?p=gest_ens&suppr={{ e.idEnseignant }}" onclick="return confirm('Voulez-vous vraiment supprimer cet enseignant ?');" style="text-decoration:none;" title="Supprimer">
                                             <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         </a>
                                     </div>
                                 </td>
                             </tr>
+                            {% else %}
+                            <tr><td colspan="6" style="padding: 2rem; color: #6b7280;">Aucun enseignant enregistré.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
 
                     <div id="barreValide" class="hidden-form" style="background:#f9fafb; padding:1rem; border-top:1px solid #d1d5db; display:flex; justify-content:flex-end; gap:10px;">
                         <button type="button" onclick="window.location.reload();" class="btn btn-secondary">Annuler</button>
-                        <button type="submit" name="validemodif" value="Valider" class="btn btn-primary">Enregistrer les modifications</button>
+                        <button type="submit" name="validemodif" value="1" class="btn btn-primary">Enregistrer les modifications</button>
                     </div>
                 </form>
             </div>
@@ -143,7 +139,6 @@
             }
         }
 
-        // Cette fonction fait le pont entre le bouton HTML et la logique de modif
         function preparerModif(btn) {
             const d = btn.dataset;
             modif_ens(d.id, d.nom, d.prenom, d.sexe, d.login, d.admin);
