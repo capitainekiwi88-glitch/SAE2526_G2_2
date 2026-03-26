@@ -170,6 +170,7 @@
     .seat { border: 1px solid #d6e5f1; background: var(--seat); cursor: pointer; padding: 4px 6px; text-align: left; position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; overflow: hidden; }
     .seat.accessible { background: var(--accessible); border-color: #b8e5c5; }
     .seat.is-empty { background: var(--seat-empty); border-style: dashed; }
+    .seat.accessible.is-empty { background: var(--accessible); border-color: #b8e5c5; border-style: dashed; }
     .seat.dragging { opacity: .55; cursor: grabbing; }
     .seat.drop-target { outline: 2px solid #93c5fd; background: var(--seat-selected); }
     .seat-code { display: block; width: 100%; font-size: .5rem; line-height: 1; color: var(--muted); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

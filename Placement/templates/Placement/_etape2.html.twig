@@ -104,9 +104,19 @@
                         <div class="desk-label">BUREAU</div>
                     </div>
 
+                    {% set has_pmr = false %}
+                    {% for row in room.layout %}
+                        {% for cell in row %}
+                            {% if cell == 'accessible' %}
+                                {% set has_pmr = true %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
                     <div class="legend">
                         <span><i class="sample-seat"></i>Place standard</span>
-                        <span><i class="sample-accessible"></i>Place PMR</span>
+                        {% if has_pmr %}
+                            <span><i class="sample-accessible"></i>Place PMR</span>
+                        {% endif %}
                         <span><i class="sample-empty"></i>Place libre</span>
                         <span><i class="sample-selected"></i>Zone de dépôt</span>
                     </div>

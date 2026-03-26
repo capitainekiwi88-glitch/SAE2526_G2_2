@@ -509,12 +509,12 @@ function placementLayoutFromSalle(array $salle): array
     foreach ($rawRows as $rawRow) {
         $row = [];
         foreach (str_split($rawRow) as $cell) {
-            if ($cell === '0') {
+            if ($cell === '0' || $cell === '3') {
                 $row[] = 'aisle';
                 continue;
             }
 
-            $row[] = $cell === '3' ? 'accessible' : 'seat';
+            $row[] = $cell === '2' ? 'accessible' : 'seat';
             $seatCount++;
         }
         $layout[] = $row;
@@ -560,7 +560,7 @@ function placementBuildPlacements(array $combinations, array $salles): array
 
             foreach ($layout as $rowIndex => $row) {
                 foreach ($row as $colIndex => $cell) {
-                    if ($cell === 'seat') {
+                    if ($cell === 'seat' || $cell === 'accessible') {
                         $key = $rowIndex . '-' . $colIndex;
                         $seatMeta[$key] = [
                             'row' => $rowIndex,
