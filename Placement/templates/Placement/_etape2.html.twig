@@ -41,12 +41,12 @@
                             <button class="btn primary compact room-add-button" type="button" data-open-student-menu="{{ room.id }}" title="Ajouter des étudiants">+ Ajouter des étudiants</button>
                             <form method="post" class="room-reroll-header {{ loop.first ? 'active' }}" data-room-reroll="{{ room.id }}">
                                 <button class="btn secondary compact room-reroll-button" type="submit" name="action" value="reroll_placements">
-                                    <img src="images/relancer.png" alt="" aria-hidden="true">
+                                    <img src="{{ base_path ~ '/images/relancer.png' }}" alt="" aria-hidden="true">
                                     <span>Relancer le placement aléatoire</span>
                                 </button>
                             </form>
                             <button class="room-action-button danger" type="button" data-delete-seat="{{ room.id }}" title="Supprimer l’étudiant déplacé">
-                                <img src="images/corbeille.png" alt="" aria-hidden="true">
+                                <img src="{{ base_path ~ '/images/corbeille.png' }}" alt="" aria-hidden="true">
                                 <span>Glisser ici pour supprimer</span>
                             </button>
 

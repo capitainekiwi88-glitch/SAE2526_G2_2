@@ -17,7 +17,7 @@
   </style>
 
   <div class="nav-left">
-    <a class="home-button" href="index.php?p=home" title="Accueil"><img class="home-icon" src="/images/home.png" alt="Accueil"></a>
+    <a class="home-button" href="index.php?p=home" title="Accueil"><img class="home-icon" src="{{ base_path ~ '/images/home.png' }}" alt="Accueil"></a>
     <a class="nav-btn" href="index.php?p=util_placement">Placement</a>
     {% if user_admin %}
     <div class="separator"></div>
@@ -31,7 +31,7 @@
     {% endif %}
   </div>
   <div class="nav-right">
-    <a href="index.php?p=logout" class="btn-logout"><img src="/images/deconnexion.png" alt="Déconnexion" style="width:18px;height:18px;"><span>Déconnexion</span></a>
+    <a href="index.php?p=logout" class="btn-logout"><img src="{{ base_path ~ '/images/deconnexion.png' }}" alt="Déconnexion" style="width:18px;height:18px;"><span>Déconnexion</span></a>
     <div style="font-size:12px;color:#666;margin-top:2px;">{{ username_test|default('Utilisateur : Test') }}</div>
   </div>
 </nav>
