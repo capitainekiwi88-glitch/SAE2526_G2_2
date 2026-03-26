@@ -9,7 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require('../lib/fpdf186/fpdf.php');
 
 function convertToLatin1($str) {
-    return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+    return iconv('UTF-8', 'Windows-1252//TRANSLIT//IGNORE', $str);
 }
 
 // --- Lecture des enseignants depuis la base de données ---
@@ -30,8 +30,8 @@ class PDF extends FPDF
 {
     function FancyTable($header, $data)
     {
-        $this->SetFillColor(128, 128, 128);
-        $this->SetTextColor(255);
+        $this->SetFillColor(200, 220, 255);
+        $this->SetTextColor(0);
         $this->SetDrawColor(0);
         $this->SetLineWidth(.3);
         $this->SetFont('', 'B');
@@ -39,7 +39,7 @@ class PDF extends FPDF
         for ($i = 0; $i < count($header); $i++)
             $this->Cell($w[$i], 7, $header[$i], 1, 0, 'C', 1);
         $this->Ln();
-        $this->SetFillColor(229, 229, 229);
+        $this->SetFillColor(224, 235, 255);
         $this->SetTextColor(0);
         $this->SetFont('');
         $fill = false;

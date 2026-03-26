@@ -235,10 +235,7 @@ function placementDeleteDevoir(int $idDevoir): void
     $dpDao->deleteByDevoir($idDevoir);
 
     $devoirDao = new DevoirDAO();
-    $devoir = $devoirDao->getById($idDevoir);
-    if ($devoir) {
-        $devoirDao->delete($devoir);
-    }
+    $devoirDao->deleteById($idDevoir);
 }
 
 function placementResetSetupForm(array &$state): void

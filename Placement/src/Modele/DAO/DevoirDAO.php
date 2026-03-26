@@ -63,6 +63,11 @@ class DevoirDAO {
         return $stmt->execute([':id' => $d->getIdDevoir()]);
     }
 
+    public function deleteById(int $id): bool {
+        $stmt = $this->_db->prepare("DELETE FROM devoir WHERE id_devoir = :id");
+        return $stmt->execute([':id' => $id]);
+    }
+
     public function update(Devoir $d): bool {
         $stmt = $this->_db->prepare("UPDATE devoir SET nom_devoir = :nom, date_devoir = :date, heure_devoir = :heure, duree_devoir = :duree WHERE id_devoir = :id");
         return $stmt->execute([

@@ -9,7 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require('../lib/fpdf186/fpdf.php');
 
 function convertToLatin1($str) {
-    return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+    return iconv('UTF-8', 'Windows-1252//TRANSLIT//IGNORE', $str);
 }
 
 $idDevoir = isset($_GET['devoir']) ? (int)$_GET['devoir'] : 0;
