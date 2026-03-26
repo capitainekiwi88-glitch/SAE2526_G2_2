@@ -81,13 +81,13 @@ for ($i = 0; $i < $nbRangs; $i++) {
 
 $noPlace = [];
 $rang = 0;
-for ($i = $nbRangs - 1; $i >= 0; $i--) {
+for ($i = 0; $i < $nbRangs; $i++) {
     $rang++;
     $col = 0;
     for ($j = 0; $j < $nbCols; $j++) {
         if ($structSalle[$i][$j] === '1' || $structSalle[$i][$j] === '2') {
             $col++;
-            $noPlace[$i][$j] = $rang . '-' . $col;
+            $noPlace[$i][$j] = ($nbRangs - $i - 1). '-' . $col;
         }
     }
 }

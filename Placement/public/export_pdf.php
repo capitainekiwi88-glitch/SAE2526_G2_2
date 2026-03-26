@@ -70,14 +70,14 @@ if ($varD === '1' || $varD === '2') {
         $planRows = explode('-', $salleInfo['donnee']);
         $nbRangs = count($planRows);
         $rang = 0;
-        for ($i = $nbRangs - 1; $i >= 0; $i--) {
+        for ($i = 0; $i < $nbRangs; $i++) {
             $rang++;
             $col = 0;
             $cells = str_split($planRows[$i]);
             for ($j = 0; $j < count($cells); $j++) {
                 if ($cells[$j] === '1' || $cells[$j] === '2') {
                     $col++;
-                    $placeLabelMap[$i . '-' . $j] = $rang . '-' . $col;
+                    $placeLabelMap[$nbRangs -$i . '-' . $j] = $nbRangs - $rang  . '-' . $col;
                 }
             }
         }
@@ -86,7 +86,7 @@ if ($varD === '1' || $varD === '2') {
     $dataTest = [];
     $promoLabels = [];
     foreach ($rows as $row) {
-        $placeLabel = $placeLabelMap[$row['place_x'] . '-' . $row['place_y']] ?? ($row['place_x'] . '-' . $row['place_y']);
+        $placeLabel = $placeLabelMap[$nbRangs -$row['place_x'] . '-' . $row['place_y']] ?? ($nbRangs -$row['place_x'] . '-' . $row['place_y']);
         $dataTest[] = [
             $row['nom_etudiant'],
             $row['prenom_etudiant'],
@@ -154,14 +154,14 @@ if ($varD === '1' || $varD === '2') {
             $planRows = explode('-', $info['donnee']);
             $nbRangs = count($planRows);
             $rang = 0;
-            for ($i = $nbRangs - 1; $i >= 0; $i--) {
+            for ($i = 0; $i < $nbRangs; $i++) {
                 $rang++;
                 $col = 0;
                 $cells = str_split($planRows[$i]);
                 for ($j = 0; $j < count($cells); $j++) {
                     if ($cells[$j] === '1' || $cells[$j] === '2') {
                         $col++;
-                        $placeLabelMaps[$sid][$i . '-' . $j] = $rang . '-' . $col;
+                        $placeLabelMaps[$sid][$nbRangs - $i . '-' . $j] = $nbRangs - $rang . '-' . $col;
                     }
                 }
             }
@@ -171,7 +171,7 @@ if ($varD === '1' || $varD === '2') {
     $dataTest = [];
     foreach ($rows as $row) {
         $sid = $row['id_salle'];
-        $placeLabel = $placeLabelMaps[$sid][$row['place_x'] . '-' . $row['place_y']] ?? ($row['place_x'] . '-' . $row['place_y']);
+        $placeLabel = $placeLabelMaps[$sid][$nbRangs - $row['place_x'] . '-' . $row['place_y']] ?? ($nbRangs - $row['place_x'] . '-' . $row['place_y']);
         $dataTest[] = [
             $row['nom_etudiant'],
             $row['prenom_etudiant'],
