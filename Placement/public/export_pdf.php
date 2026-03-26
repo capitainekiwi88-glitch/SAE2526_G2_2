@@ -1,10 +1,10 @@
 <?php
 session_start();
-ob_end_clean();
+ob_start();
 require_once __DIR__ . '/../vendor/autoload.php';
-require('../lib/ezpdf/class.ezpdf.php');
+require('../lib/fpdf186/fpdf.php');
 
-function toLatin1($str) {
+function convertToLatin1($str) {
     return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
 }
 
@@ -195,152 +195,146 @@ if ($varD === '1' || $varD === '2') {
     die('Type de PDF invalide.');
 }
 
+class PDF extends FPDF
+{
+    function Header()
+    {
+        $this->SetFont('Arial', 'B', 12);
+    }
+
+    function Footer()
+    {
+        $this->SetY(-15);
+        $this->SetFont('Arial', 'I', 8);
+        $this->Cell(0, 10, 'Page ' . $this->PageNo(), 0, 0, 'C');
+    }
+
+    function FancyTable($header, $data, $devoirTest, $type)
+    {
+        $this->SetFillColor(200, 220, 255);
+        $this->SetTextColor(0);
+        $this->SetDrawColor(0);
+        $this->SetLineWidth(.3);
+        $this->SetFont('', 'B');
+        
+        if ($type === 'salle' || $type === 'promo') {
+            $w = array(40, 40, 20, 45, 45);
+        } elseif ($type === 'emarge') {
+            $w = array(30, 35, 35, 20, 35, 35); 
+        }
+        
+        for ($i = 0; $i < count($header); $i++)
+            $this->Cell($w[$i], 7, $header[$i], 1, 0, 'C', true);
+        $this->Ln();
+        
+        $this->SetFillColor(224, 235, 255);
+        $this->SetTextColor(0);
+        $this->SetFont('');
+        
+        $fill = false;
+        foreach ($data as $row) {
+            foreach ($row as $key => $cell) {
+                $this->Cell($w[$key], 6, $cell, 'LR', 0, 'L', $fill);
+            }
+            $this->Ln();
+            $fill = !$fill;
+        }
+        $this->Cell(array_sum($w), 0, '', 'T');
+    }
+}
 
 function creaPDFSalle($dataTest, $devoirTest)
 {
-    $pdf = new Cezpdf('a4', 'portrait');
-    $pdf->selectFont('../lib/ezpdf/fonts/Helvetica.afm');
-
-    $cols = array();
-    $cols[0] = toLatin1('Nom');
-    $cols[1] = toLatin1('Prenom');
-    $cols[2] = 'Place';
-    $cols[3] = 'Promotion';
-    $cols[4] = 'Groupe';
-
+    ob_end_clean();
+    
+    $pdf = new PDF();
+    $pdf->AddPage();
+    
+    $pdf->SetFont('Arial', 'B', 14);
+    $pdf->Cell(0, 10, convertToLatin1('Liste ' . $devoirTest['nomSalle']), 0, 1, 'C');
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(0, 10, convertToLatin1($devoirTest['matiere'] . ' (' . $devoirTest['promotion'] . ')'), 0, 1, 'C');
+    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - Duree: ' . $devoirTest['duree'], 0, 1, 'C');
+    
+    $header = array('Nom', 'Prénom', 'Place', 'Promotion', 'Groupe');
     $data = array();
-    for ($i = 0; $i < count($dataTest); $i++) {
-        $data[$i][0] = toLatin1($dataTest[$i][0]);
-        $data[$i][1] = toLatin1($dataTest[$i][1]);
-        $data[$i][2] = $dataTest[$i][5];
-        $data[$i][3] = $dataTest[$i][2];
-        $data[$i][4] = $dataTest[$i][3];
+    foreach ($dataTest as $row) {
+        $data[] = array(
+            convertToLatin1($row[0]),
+            convertToLatin1($row[1]),
+            $row[5],
+            convertToLatin1($row[2]),
+            convertToLatin1($row[3])
+        );
     }
-
-    $options = array(
-        'showLines' => 1,
-        'show Headings' => 1,
-        'shaded' => 1,
-        'shadeCol' => array(0.95, 0.95, 0.95),
-        'shadeCol2' => array(0.8, 0.8, 0.8),
-        'textCol' => array(0, 0, 0),
-        'rowGap' => 1,
-        'colGap' => 10,
-        'lineCol' => array(1, 1, 1),
-        'xPos' => 'center',
-        'width' => 90,
-    );
-
-    $conf = array('justification' => 'center');
-
-    $pdf->ezText(toLatin1('Liste ' . $devoirTest['nomSalle']), 14, $conf);
-    $pdf->ezText(toLatin1($devoirTest['matiere'] . ' (' . $devoirTest['promotion'] . ')'), 10, $conf);
-    $pdf->ezText($devoirTest['date'] . ' - ' . $devoirTest['heure'] . toLatin1(' - Duree: ') . $devoirTest['duree'], 10, $conf);
-
-    $pdf->ezTable($data, $cols, ' ', $options);
-    $pdf->ezStream();
+    
+    $pdf->FancyTable($header, $data, $devoirTest, 'salle');
+    $pdf->Output('I', 'liste_salle.pdf');
 }
 
 function creaPDFEmarge($dataTest, $devoirTest)
 {
-    $pdf = new Cezpdf('a4', 'portrait');
-    $pdf->selectFont('../lib/ezpdf/fonts/Helvetica.afm');
-
-    $cols = array();
-    $cols[0] = '       Signature       ';
-    $cols[1] = toLatin1('Nom');
-    $cols[2] = toLatin1('Prenom');
-    $cols[3] = 'Place';
-    $cols[4] = 'Promotion';
-    $cols[5] = 'Groupe';
-
+    ob_end_clean();
+    
+    $pdf = new PDF();
+    $pdf->AddPage();
+    
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(0, 10, 'Surveillant :', 0, 1, 'L');
+    $pdf->Cell(0, 10, 'Nombre d\'absents :', 0, 1, 'L');
+    $pdf->Cell(0, 10, 'Absents :', 0, 1, 'L');
+    $pdf->Ln(10);
+    
+    $pdf->SetFont('Arial', 'B', 14);
+    $pdf->Cell(0, 10, convertToLatin1('FEUILLE D\'EMARGEMENT ' . $devoirTest['nomSalle']), 0, 1, 'C');
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(0, 10, convertToLatin1($devoirTest['matiere'] . ' (' . $devoirTest['promotion'] . ')'), 0, 1, 'C');
+    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - Duree: ' . $devoirTest['duree'], 0, 1, 'C');
+    
+    $header = array('       Signature       ', 'Nom', 'Prénom', 'Place', 'Promotion', 'Groupe');
     $data = array();
-    for ($i = 0; $i < count($dataTest); $i++) {
-        $data[$i][0] = '';
-        $data[$i][1] = toLatin1($dataTest[$i][0]);
-        $data[$i][2] = toLatin1($dataTest[$i][1]);
-        $data[$i][3] = $dataTest[$i][5];
-        $data[$i][4] = $dataTest[$i][2];
-        $data[$i][5] = $dataTest[$i][3];
+    foreach ($dataTest as $row) {
+        $data[] = array(
+            '',
+            convertToLatin1($row[0]),
+            convertToLatin1($row[1]),
+            $row[5],
+            convertToLatin1($row[2]),
+            convertToLatin1($row[3])
+        );
     }
-
-    $options = array(
-        'showLines' => 1,
-        'show Headings' => 1,
-        'shaded' => 1,
-        'shadeCol' => array(0.95, 0.95, 0.95),
-        'shadeCol2' => array(0.9, 0.9, 0.9),
-        'textCol' => array(0, 0, 0),
-        'rowGap' => 3,
-        'colGap' => 10,
-        'lineCol' => array(1, 1, 1),
-        'xPos' => 'center',
-        'xOrientation' => 'center',
-        'width' => 50,
-        'maxWidth' => 300,
-    );
-
-    $conf = array('justification' => 'center');
-    $confLeft = array('justification' => 'left');
-
-    $pdf->ezText('Surveillant :', 10, $confLeft);
-    $pdf->ezText('Nombre d\'absents :', 10, $confLeft);
-    $pdf->ezText('Absents :', 10, $confLeft);
-    $pdf->ezText(' ', 20, $confLeft);
-
-    $pdf->ezText(toLatin1('FEUILLE D\'EMARGEMENT ' . $devoirTest['nomSalle']), 14, $conf);
-    $pdf->ezText(toLatin1($devoirTest['matiere'] . ' (' . $devoirTest['promotion'] . ')'), 10, $conf);
-    $pdf->ezText($devoirTest['date'] . ' - ' . $devoirTest['heure'] . toLatin1(' - Duree: ') . $devoirTest['duree'], 10, $conf);
-
-    $pdf->ezTable($data, $cols, ' ', $options);
-    $pdf->ezStream();
+    
+    $pdf->FancyTable($header, $data, $devoirTest, 'emarge');
+    $pdf->Output('I', 'feuille_emargement.pdf');
 }
 
 function creaPDFPromo($dataTest, $devoirTest)
 {
-    $pdf = new Cezpdf('a4', 'portrait');
-    $pdf->selectFont('../lib/ezpdf/fonts/Helvetica.afm');
-
-    $cols = array();
-    $cols[0] = toLatin1('Nom');
-    $cols[1] = toLatin1('Prenom');
-    $cols[2] = 'Place';
-    $cols[3] = 'Salle';
-    $cols[4] = 'Groupe';
-
+    ob_end_clean(); 
+    
+    $pdf = new PDF();
+    $pdf->AddPage();
+    
+    $pdf->SetFont('Arial', 'B', 14);
+    $pdf->Cell(0, 10, convertToLatin1('Liste ' . $devoirTest['promotion']), 0, 1, 'C');
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(0, 10, convertToLatin1($devoirTest['matiere']), 0, 1, 'C');
+    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - Duree: ' . $devoirTest['duree'], 0, 1, 'C');
+    
+    $header = array('Nom', 'Prénom', 'Place', 'Salle', 'Groupe');
     $data = array();
-    for ($i = 0; $i < count($dataTest); $i++) {
-        $data[$i][0] = toLatin1($dataTest[$i][0]);
-        $data[$i][1] = toLatin1($dataTest[$i][1]);
-        $data[$i][2] = $dataTest[$i][5];
-        $data[$i][3] = $dataTest[$i][4];
-        $data[$i][4] = $dataTest[$i][3];
+    foreach ($dataTest as $row) {
+        $data[] = array(
+            convertToLatin1($row[0]),
+            convertToLatin1($row[1]),
+            $row[5],
+            convertToLatin1($row[4]),
+            convertToLatin1($row[3])
+        );
     }
-
-    $options = array(
-        'showLines' => 1,
-        'show Headings' => 1,
-        'shaded' => 1,
-        'shadeCol' => array(0.95, 0.95, 0.95),
-        'shadeCol2' => array(0.9, 0.9, 0.9),
-        'textCol' => array(0, 0, 0),
-        'rowGap' => 1,
-        'colGap' => 10,
-        'lineCol' => array(1, 1, 1),
-        'xPos' => 'center',
-        'xOrientation' => 'center',
-        'width' => 50,
-        'maxWidth' => 300,
-    );
-
-    $conf = array('justification' => 'center');
-
-    $pdf->ezText(toLatin1('Liste ' . $devoirTest['promotion']), 14, $conf);
-    $pdf->ezText(toLatin1($devoirTest['matiere']), 10, $conf);
-    $pdf->ezText($devoirTest['date'] . ' - ' . $devoirTest['heure'] . toLatin1(' - Duree: ') . $devoirTest['duree'], 10, $conf);
-
-    $pdf->ezTable($data, $cols, ' ', $options);
-    $pdf->ezStream();
+    
+    $pdf->FancyTable($header, $data, $devoirTest, 'promo');
+    $pdf->Output('I', 'liste_promotion.pdf');
 }
 
 switch ($varD) {

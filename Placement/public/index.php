@@ -1121,6 +1121,9 @@ switch ($page) {
             ]);
         }
         break;
+    case 'login':
+        echo $twig->render('login.html.twig');
+        break;
     case 'home':
         echo $twig->render('index.html.twig', [
             'nom_projet' => 'Gestion de Placement',
