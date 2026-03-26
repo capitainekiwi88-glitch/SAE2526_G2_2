@@ -85,4 +85,4 @@ Conservé dans le dépôt comme référence.
 
 Les rapports hebdomadaires de suivi sont dans `Rapports/`.
 
-**Rapport final** : `Rapports/` *(à venir)*
+**Rapport final** : `Rapports/Rapport final.pdf`.
