@@ -211,7 +211,7 @@ class PDF extends FPDF
 
         $this->Cell($long, 5, $devoirTest['nomSalle'], 'LRT', 0, 'C');
         $this->Ln();
-        $this->Cell($long, 5, $devoirTest['date'] . " - " . $devoirTest['heure'] . toLatin1(' - Duree: ') . $devoirTest['duree'] . " - " . $titleMat, 'LRB', 0, 'C');
+        $this->Cell($long, 5, $devoirTest['date'] . " - " . $devoirTest['heure'] . toLatin1(' - Durée: ') . $devoirTest['duree'] . " - " . $titleMat, 'LRB', 0, 'C');
     }
 
     function drawBureau($orientation) {

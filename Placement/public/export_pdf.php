@@ -254,9 +254,9 @@ function creaPDFSalle($dataTest, $devoirTest)
     $pdf->Cell(0, 10, convertToLatin1('Liste ' . $devoirTest['nomSalle']), 0, 1, 'C');
     $pdf->SetFont('Arial', '', 10);
     $pdf->Cell(0, 10, convertToLatin1($devoirTest['matiere'] . ' (' . $devoirTest['promotion'] . ')'), 0, 1, 'C');
-    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - Duree: ' . $devoirTest['duree'], 0, 1, 'C');
-    
-    $header = array('Nom', 'Prénom', 'Place', 'Promotion', 'Groupe');
+    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - ' . convertToLatin1('Durée: ') . $devoirTest['duree'], 0, 1, 'C');
+
+    $header = array('Nom', convertToLatin1('Prénom'), 'Place', 'Promotion', 'Groupe');
     $data = array();
     foreach ($dataTest as $row) {
         $data[] = array(
@@ -267,7 +267,7 @@ function creaPDFSalle($dataTest, $devoirTest)
             convertToLatin1($row[3])
         );
     }
-    
+
     $pdf->FancyTable($header, $data, $devoirTest, 'salle');
     $pdf->Output('I', 'liste_salle.pdf');
 }
@@ -289,9 +289,9 @@ function creaPDFEmarge($dataTest, $devoirTest)
     $pdf->Cell(0, 10, convertToLatin1('FEUILLE D\'EMARGEMENT ' . $devoirTest['nomSalle']), 0, 1, 'C');
     $pdf->SetFont('Arial', '', 10);
     $pdf->Cell(0, 10, convertToLatin1($devoirTest['matiere'] . ' (' . $devoirTest['promotion'] . ')'), 0, 1, 'C');
-    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - Duree: ' . $devoirTest['duree'], 0, 1, 'C');
-    
-    $header = array('       Signature       ', 'Nom', 'Prénom', 'Place', 'Promotion', 'Groupe');
+    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - ' . convertToLatin1('Durée: ') . $devoirTest['duree'], 0, 1, 'C');
+
+    $header = array('       Signature       ', 'Nom', convertToLatin1('Prénom'), 'Place', 'Promotion', 'Groupe');
     $data = array();
     foreach ($dataTest as $row) {
         $data[] = array(
@@ -319,9 +319,9 @@ function creaPDFPromo($dataTest, $devoirTest)
     $pdf->Cell(0, 10, convertToLatin1('Liste ' . $devoirTest['promotion']), 0, 1, 'C');
     $pdf->SetFont('Arial', '', 10);
     $pdf->Cell(0, 10, convertToLatin1($devoirTest['matiere']), 0, 1, 'C');
-    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - Duree: ' . $devoirTest['duree'], 0, 1, 'C');
-    
-    $header = array('Nom', 'Prénom', 'Place', 'Salle', 'Groupe');
+    $pdf->Cell(0, 10, $devoirTest['date'] . ' - ' . $devoirTest['heure'] . ' - ' . convertToLatin1('Durée: ') . $devoirTest['duree'], 0, 1, 'C');
+
+    $header = array('Nom', convertToLatin1('Prénom'), 'Place', 'Salle', 'Groupe');
     $data = array();
     foreach ($dataTest as $row) {
         $data[] = array(
