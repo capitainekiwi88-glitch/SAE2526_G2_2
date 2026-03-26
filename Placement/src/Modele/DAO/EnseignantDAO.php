@@ -46,6 +46,7 @@ class EnseignantDAO {
     }
 
     public function insert(Enseignant $e, string $password): bool {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $this->_db->prepare("INSERT INTO enseignant (nom_ens, prenom_ens, sexe, login, admin, pass) VALUES (:nom, :prenom, :sexe, :login, :admin, :password)");
         $res = $stmt->execute([
             ':nom' => $e->getNom(),
@@ -53,7 +54,7 @@ class EnseignantDAO {
             ':sexe' => $e->getSexe(),
             ':login' => $e->getLogin(),
             ':admin' => $e->getAdmin(),
-            ':password' => $password
+            ':password' => $hash
         ]);
 
         if ($res) {
@@ -87,7 +88,26 @@ class EnseignantDAO {
         $data = $this->findByLogin($login);
         if (!$data || !isset($data['pass'])) return false;
 
-        return $password === $data['pass'];
+        $stored = $data['pass'];
+
+        // Bcrypt hash
+        if (str_starts_with($stored, '$2y$')) {
+            return password_verify($password, $stored);
+        }
+
+        // Legacy: plain text or md5
+        if ($password === $stored || md5($password) === $stored) {
+            // Migrate to bcrypt on successful legacy login
+            $this->updatePassword((int)$data['id_ens'], password_hash($password, PASSWORD_DEFAULT));
+            return true;
+        }
+
+        return false;
+    }
+
+    public function updatePassword(int $id, string $newHash): bool {
+        $stmt = $this->_db->prepare("UPDATE enseignant SET pass = :pass WHERE id_ens = :id");
+        return $stmt->execute([':pass' => $newHash, ':id' => $id]);
     }
 
 

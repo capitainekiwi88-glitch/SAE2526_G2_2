@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: index.php?p=login');
+    exit;
+}
 ob_start();
 require_once __DIR__ . '/../vendor/autoload.php';
 require('../lib/fpdf186/fpdf.php');

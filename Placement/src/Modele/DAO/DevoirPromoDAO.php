@@ -67,6 +67,11 @@ class DevoirPromoDAO {
             ':mat' => $dg->getIdMat()
         ]);
     }
+    public function deleteByDevoir(int $idDevoir): bool {
+        $stmt = $this->_db->prepare("DELETE FROM devoir_promo WHERE id_devoir = :id");
+        return $stmt->execute([':id' => $idDevoir]);
+    }
+
     public function delete(DevoirPromo $dg): bool {
         $stmt = $this->_db->prepare("
             DELETE FROM devoir_promo 
