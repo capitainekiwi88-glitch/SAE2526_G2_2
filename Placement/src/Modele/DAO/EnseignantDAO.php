@@ -46,22 +46,22 @@ class EnseignantDAO {
     }
 
     public function insert(Enseignant $e, string $password): bool {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->_db->prepare("INSERT INTO enseignant (nom_ens, prenom_ens, sexe, login, admin, pass) VALUES (:nom, :prenom, :sexe, :login, :admin, :password)");
-        $res = $stmt->execute([
-            ':nom' => $e->getNom(),
-            ':prenom' => $e->getPrenom(),
-            ':sexe' => $e->getSexe(),
-            ':login' => $e->getLogin(),
-            ':admin' => $e->getAdmin(),
-            ':password' => $hash
-        ]);
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $this->_db->prepare("INSERT INTO enseignant (nom_ens, prenom_ens, sexe, login, admin, pass) VALUES (:nom, :prenom, :sexe, :login, :admin, :password)");
+    $stmt->bindValue(':nom', $e->getNom());
+    $stmt->bindValue(':prenom', $e->getPrenom());
+    $stmt->bindValue(':sexe', $e->getSexe());
+    $stmt->bindValue(':login', $e->getLogin());
+    $stmt->bindValue(':admin', (int)$e->getAdmin(), PDO::PARAM_INT);
+    $stmt->bindValue(':password', $hash);
 
-        if ($res) {
-            $e->setIdEnseignant((int)$this->_db->lastInsertId());
-        }
-        return $res;
+    $res = $stmt->execute();
+
+    if ($res) {
+        $e->setIdEnseignant((int)$this->_db->lastInsertId());
     }
+    return $res;
+}
     public function findByLogin(string $login): ?array {
         $stmt = $this->_db->prepare("SELECT * FROM enseignant WHERE login = :login");
         $stmt->execute([':login' => $login]);
@@ -90,14 +90,11 @@ class EnseignantDAO {
 
         $stored = $data['pass'];
 
-        // Bcrypt hash
         if (str_starts_with($stored, '$2y$')) {
             return password_verify($password, $stored);
         }
 
-        // Legacy: plain text or md5
         if ($password === $stored || md5($password) === $stored) {
-            // Migrate to bcrypt on successful legacy login
             $this->updatePassword((int)$data['id_ens'], password_hash($password, PASSWORD_DEFAULT));
             return true;
         }
@@ -118,16 +115,17 @@ class EnseignantDAO {
     }
 
     public function update(Enseignant $d): bool {
-        $stmt = $this->_db->prepare("UPDATE enseignant SET nom_ens = :nom, prenom_ens = :prenom, sexe = :sexe, login = :login, admin = :admin WHERE id_ens = :id");
-        return $stmt->execute([
-            ':nom' => $d->getNom(),
-            ':prenom' => $d->getPrenom(),
-            ':sexe' => $d->getSexe(),
-            ':login' => $d->getLogin(),
-            ':admin' => $d->getAdmin(),
-            ':id'  => $d->getIdEnseignant()
-        ]);
-    }
+    $stmt = $this->_db->prepare("UPDATE enseignant SET nom_ens = :nom, prenom_ens = :prenom, sexe = :sexe, login = :login, admin = :admin WHERE id_ens = :id");
+    
+    $stmt->bindValue(':nom', $d->getNom());
+    $stmt->bindValue(':prenom', $d->getPrenom());
+    $stmt->bindValue(':sexe', $d->getSexe());
+    $stmt->bindValue(':login', $d->getLogin());
+    $stmt->bindValue(':admin', (int)$d->getAdmin(), PDO::PARAM_INT);
+    $stmt->bindValue(':id', $d->getIdEnseignant(), PDO::PARAM_INT);
+    
+    return $stmt->execute();
+}
 
     public function deleteById(int $id): bool {
         $stmt = $this->_db->prepare("DELETE FROM enseignant WHERE id_ens = :id");

@@ -41,8 +41,8 @@ if (isset($_POST['validemodif'])) {
     $prenom = trim($_POST['n_prenom'] ?? '');
     $sexe = $_POST['n_sexe'] ?? 'M';
     $login = trim($_POST['n_login'] ?? '');
-    $admin = isset($_POST['n_admin']) ? (bool) $_POST['n_admin'] : false;
-
+    $admin = isset($_POST['n_admin']) ? 1 : 0;
+    
     if ($id_ens > 0 && !empty($nom) && !empty($prenom) && !empty($login)) {
         $existing = $ensDAO->findByLogin($login);
         if ($existing && (int)$existing['id_ens'] !== $id_ens) {
