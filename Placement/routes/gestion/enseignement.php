@@ -15,8 +15,14 @@ if (isset($_POST['ajouter'])) {
     $idMat = (int) $_POST['id_mat'];
 
     if ($idEns > 0 && $idMat > 0) {
-        $nouvelEnseignement = new \App\Modele\Entity\Enseignement($idEns, $idMat);
-        $enseigneDAO->insert($nouvelEnseignement);
+        try {
+            $nouvelEnseignement = new \App\Modele\Entity\Enseignement($idEns, $idMat);
+            $enseigneDAO->insert($nouvelEnseignement);
+        } catch (\PDOException $e) {
+            if ($e->getCode() != 23000) {
+                throw $e;
+            }
+        }
     }
     header("Location: index.php?p=gest_ensmat");
     exit;
@@ -29,8 +35,14 @@ if (isset($_POST['validemodif'])) {
     $newIdMat = (int) $_POST['n_id_mat'];
 
     if ($oldIdEns > 0 && $oldIdMat > 0 && $newIdEns > 0 && $newIdMat > 0) {
-        $modifEnseignement = new \App\Modele\Entity\Enseignement($newIdEns, $newIdMat);
-        $enseigneDAO->update($oldIdEns, $oldIdMat, $modifEnseignement);
+        try {
+            $modifEnseignement = new \App\Modele\Entity\Enseignement($newIdEns, $newIdMat);
+            $enseigneDAO->update($oldIdEns, $oldIdMat, $modifEnseignement);
+        } catch (\PDOException $e) {
+            if ($e->getCode() != 23000) {
+                throw $e;
+            }
+        }
     }
     header("Location: index.php?p=gest_ensmat");
     exit;
