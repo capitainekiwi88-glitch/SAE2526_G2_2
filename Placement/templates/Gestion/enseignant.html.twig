@@ -44,6 +44,12 @@
 <body>
     <div class="main-container" id="page-wrapper">
 
+        {% if error %}
+        <div style="margin-bottom: 1rem; padding: 0.8rem 1rem; border: 1px solid #fca5a5; background: #fee2e2; color: #991b1b; border-radius: 0.5rem;">
+            {{ error }}
+        </div>
+        {% endif %}
+
         <div id="bloccrea" class="card hidden-form" style="padding:1.5rem;">
             <h3 class="card-title" style="margin-bottom: 1.5rem;">Nouvel Enseignant</h3>
             <form action="index.php?p=gest_ens" method="post" class="form-flex-container">
